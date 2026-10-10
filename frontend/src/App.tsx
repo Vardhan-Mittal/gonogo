@@ -52,6 +52,7 @@ export default function App() {
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [sendAlerts, setSendAlerts] = useState(false);
+  const [useForecast, setUseForecast] = useState(true);
   const [route, setRoute] = useState<string[]>(() => load("gonogo.route", []));
   const [bot, setBot] = useState("");
   const [reportSpot, setReportSpot] = useState<Spot | null>(null);
@@ -104,8 +105,10 @@ export default function App() {
     api.replayNotify(stormId, step).catch(() => {});
   }, [mode, sendAlerts, replay, stormId, step]);
 
+  const replayStep = replay?.steps[step];
   const statuses: Record<string, Status> =
-    mode === "live" ? live : replay?.steps[step]?.statuses ?? {};
+    mode === "live" ? live
+      : (useForecast ? replayStep?.statuses : replayStep?.statuses_gauge_only) ?? {};
 
   const sorted = useMemo(() => [...spots].sort((a, b) => {
     const la = statuses[a.id]?.level ?? "SAFE", lb = statuses[b.id]?.level ?? "SAFE";
@@ -164,6 +167,9 @@ export default function App() {
           </p>
           <h2>{showOffline ? t.offline : spots.length ? t.headline(counts.NO_GO, counts.RISKY, spots.length) : "…"}</h2>
           {!showOffline && <p className="hero-hint">{t.levelHint[worst]}</p>}
+          {mode === "live" && (showOffline || worst === "SAFE") && (
+            <button className="hero-link" onClick={() => { setStormId("2024-06-28"); setMode("replay"); }}>{t.seeReplay}</button>
+          )}
         </div>
         <div className="seg big" role="tablist">
           <button role="tab" aria-selected={mode === "live"} className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>{t.live}</button>
@@ -216,13 +222,21 @@ export default function App() {
                 <span className="muted">{t.hourlyRain}</span>
                 <span className="rainnow">🌧 <b>{cur.rain_mm}</b> {t.rainThisHour}</span>
               </div>
+              <label className="check forecast">
+                <input type="checkbox" checked={useForecast} onChange={(e) => setUseForecast(e.target.checked)} />
+                <span>{t.useForecast}<small>{t.useForecastHint}</small></span>
+              </label>
               <div className="validation">
-                <b>✅ {t.validation(replay.validation.flagged, replay.validation.reported)}</b>
+                <b>✅ {t.validation(useForecast ? replay.validation.flagged : replay.validation.flagged_gauge_only, replay.validation.reported)}</b>
+                <span className="muted"> · {t.peak} {replay.validation.peak_time.slice(11, 16)}</span>
                 {replay.validation.spots.map((v) => {
                   const sp = spots.find((s) => s.id === v.spot);
+                  const time = useForecast ? v.first_no_go : v.first_no_go_gauge_only;
+                  const lead = useForecast ? v.hours_before_peak : v.hours_before_peak_gauge_only;
                   return (
                     <div key={v.spot} className="vrow">
-                      {sp ? name(sp) : v.spot}: {t.firstNoGo} <b>{v.first_no_go?.slice(11, 16) ?? "-"}</b>{" "}
+                      {sp ? name(sp) : v.spot}: {t.firstNoGo} <b>{time?.slice(11, 16) ?? "-"}</b>
+                      {lead != null && <span className={lead > 0 ? "lead good" : "lead"}>{t.lead(lead)}</span>}{" "}
                       <a href={v.source} target="_blank" rel="noreferrer">source ↗</a>
                     </div>
                   );

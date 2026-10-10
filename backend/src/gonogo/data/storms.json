@@ -6,30 +6,57 @@
     "station": "IMD Safdarjung",
     "start": "2024-06-27T22:00",
     "rain_mm_per_hour": [6.6, 2.0, 5.0, 12.0, 18.0, 45.0, 58.0, 45.5, 20.0, 10.0, 6.0, 2.0, 0.0],
-    "note": "Hourly shape reconstructed from IMD's observed totals: 228.1 mm in 24 h to 08:30 and 148.5 mm between 02:30 and 05:30. Gridded reanalysis (Open-Meteo/ERA5) shows only ~24 mm for this day, so observed figures are used.",
+    "note": "Hourly shape at Safdarjung reconstructed from IMD's observed totals (228.1 mm in 24 h to 08:30; 148.5 mm between 02:30 and 05:30). Each spot is scaled by distance-weighted 24-hour totals from 10 IMD stations, so rain differs across the city. Gridded reanalysis (Open-Meteo/ERA5) shows only ~24 mm for this day, so observed figures are used.",
     "sources": [
       "https://scroll.in/latest/1069909/delhi-sees-highest-single-day-june-rainfall-in-88-years",
       "https://mausam.imd.gov.in/Forecast/marquee_data/Press%20Release%20Delhi%20heavy%20rainfall%2028-06-2024.pdf"
     ],
-    "spot_factor": {},
+    "reference_mm": 228.1,
+    "stations": [
+      {"name": "Safdarjung", "lat": 28.584, "lon": 77.206, "mm": 228.1},
+      {"name": "Lodhi Road", "lat": 28.589, "lon": 77.222, "mm": 192.8},
+      {"name": "Ridge", "lat": 28.680, "lon": 77.195, "mm": 150.4},
+      {"name": "Delhi University", "lat": 28.688, "lon": 77.210, "mm": 139.0},
+      {"name": "Pitampura", "lat": 28.703, "lon": 77.132, "mm": 138.0},
+      {"name": "Palam", "lat": 28.570, "lon": 77.112, "mm": 106.6},
+      {"name": "Pusa", "lat": 28.638, "lon": 77.160, "mm": 89.0},
+      {"name": "Mayur Vihar", "lat": 28.608, "lon": 77.296, "mm": 75.0},
+      {"name": "Tughlakabad", "lat": 28.500, "lon": 77.265, "mm": 70.5},
+      {"name": "Ayanagar", "lat": 28.477, "lon": 77.131, "mm": 66.3}
+    ],
+    "stations_source": "https://www.businesstoday.in/amp/india/story/historic-delhi-records-second-highest-rainfall-in-43-years-reveals-imd-data-435102-2024-06-28",
     "reported_flooded": [
-      {"spot": "pragati", "source": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"}
+      {"spot": "pragati", "source": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"},
+      {"spot": "minto", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
+      {"spot": "ito", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
+      {"spot": "dhaulakuan", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
+      {"spot": "azadmkt", "source": "https://scroll.in/video/1069905/watch-roads-cave-in-cars-submerged-as-heavy-rain-triggers-severe-waterlogging-in-delhi-ncr"}
     ]
   },
   {
     "id": "2024-07-31",
     "title": "31 July 2024: evening cloudburst, Ghazipur drowning",
     "title_hi": "31 जुलाई 2024: शाम की तेज़ बारिश, गाज़ीपुर हादसा",
-    "station": "IMD Safdarjung (Mayur Vihar scaled)",
+    "station": "IMD Safdarjung",
     "start": "2024-07-31T16:00",
-    "rain_mm_per_hour": [0.0, 3.0, 28.0, 42.0, 25.0, 8.0, 3.0, 0.0],
-    "note": "Hourly shape approximated; totals from IMD reports (100+ mm at Safdarjung, 147.5 mm at Mayur Vihar). East Delhi spots are scaled by the Mayur Vihar / Safdarjung ratio.",
+    "rain_mm_per_hour": [0.0, 3.0, 27.0, 41.0, 24.0, 7.6, 3.0, 0.0],
+    "note": "Hourly shape approximated (East Delhi saw 119 mm in three hours that evening); 24-hour totals from IMD stations: Safdarjung 105.6, Lodhi Road 107.5, Delhi University 104.5, Najafgarh 113, Mayur Vihar 147.5 mm. Each spot is scaled by distance-weighted station totals.",
     "sources": [
+      "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464",
       "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"
     ],
-    "spot_factor": {"ghazipur": 1.35},
+    "reference_mm": 105.6,
+    "stations": [
+      {"name": "Safdarjung", "lat": 28.584, "lon": 77.206, "mm": 105.6},
+      {"name": "Lodhi Road", "lat": 28.589, "lon": 77.222, "mm": 107.5},
+      {"name": "Delhi University", "lat": 28.688, "lon": 77.210, "mm": 104.5},
+      {"name": "Najafgarh", "lat": 28.609, "lon": 76.985, "mm": 113.0},
+      {"name": "Mayur Vihar", "lat": 28.608, "lon": 77.296, "mm": 147.5}
+    ],
+    "stations_source": "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464",
     "reported_flooded": [
-      {"spot": "ghazipur", "source": "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"}
+      {"spot": "ghazipur", "source": "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"},
+      {"spot": "pragati", "source": "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464"}
     ]
   },
   {
@@ -39,11 +66,10 @@
     "station": "IMD Safdarjung",
     "start": "2020-07-19T03:00",
     "rain_mm_per_hour": [0.0, 5.0, 22.0, 30.0, 12.0, 5.8, 0.0],
-    "note": "Hourly shape approximated; total of 74.8 mm by 08:30 from IMD as reported.",
+    "note": "Hourly shape approximated; total of 74.8 mm by 08:30 at Safdarjung from IMD as reported. No station-wise totals found, so the same rain is applied city-wide.",
     "sources": [
       "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"
     ],
-    "spot_factor": {},
     "reported_flooded": [
       {"spot": "minto", "source": "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"}
     ]

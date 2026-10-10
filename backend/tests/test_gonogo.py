@@ -46,6 +46,21 @@ def test_every_storm_flags_its_reported_floods():
         assert v["flagged"] == v["reported"] > 0, st["id"]
 
 
+def test_station_totals_make_rain_vary_by_spot():
+    st = data.storm("2024-06-28")
+    # Moolchand sits near Lodhi Road/Safdarjung (190-228 mm); Pul Prahladpur
+    # near Tughlakabad (70 mm), so it gets far less rain.
+    assert data.rain_factor(st, data.spot("moolchand")) > 2 * data.rain_factor(st, data.spot("prahladpur"))
+    assert data.rain_factor(data.storm("2020-07-19"), data.spot("minto")) == 1.0
+
+
+def test_gauge_only_replay_never_warns_earlier_than_forecast():
+    for st in data.storms():
+        for r in data.replay(st["id"])["validation"]["spots"]:
+            if r["first_no_go_gauge_only"]:
+                assert r["first_no_go"] <= r["first_no_go_gauge_only"]
+
+
 def test_minto_2020_flagged_before_peak():
     rp = data.replay("2020-07-19")
     first = next(s["time"] for s in rp["steps"] if s["statuses"]["minto"]["level"] == risk.NO_GO)

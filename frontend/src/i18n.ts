@@ -57,6 +57,12 @@ const en = {
   stat3h: "last 3 h",
   type: { underpass: "Underpass", tunnel: "Tunnel", road: "Road", junction: "Junction", basements: "Basements", street: "Street" } as Record<string, string>,
   perennial: "Floods every year",
+  useForecast: "Use a 1-hour rain forecast",
+  useForecastHint: "Off = rain gauges only, no forecast",
+  peak: "heaviest rain at",
+  lead: (h: number) => (h > 0 ? `${h} h before peak` : h === 0 ? "at peak" : `${-h} h after peak`),
+  gaugeOnly: "gauges only",
+  seeReplay: "It's dry today. See how GoNoGo warned on 28 June 2024 →",
 };
 
 const hi: typeof en = {
@@ -114,6 +120,12 @@ const hi: typeof en = {
   stat3h: "पिछले 3 घंटे",
   type: { underpass: "अंडरपास", tunnel: "टनल", road: "सड़क", junction: "चौराहा", basements: "बेसमेंट", street: "गली" },
   perennial: "हर साल पानी भरता है",
+  useForecast: "1 घंटे का बारिश पूर्वानुमान इस्तेमाल करें",
+  useForecastHint: "बंद = सिर्फ़ रेन गेज, कोई पूर्वानुमान नहीं",
+  peak: "सबसे भारी बारिश",
+  lead: (h) => (h > 0 ? `चरम से ${h} घंटे पहले` : h === 0 ? "चरम पर" : `चरम के ${-h} घंटे बाद`),
+  gaugeOnly: "सिर्फ़ गेज",
+  seeReplay: "आज मौसम सूखा है। देखें 28 जून 2024 को GoNoGo ने कैसे चेताया →",
 };
 
 export const STRINGS = { en, hi };

@@ -58,6 +58,12 @@ h1 span { color: var(--muted); font-weight: 400; margin: 0 1px; }
 .rainnow b { font-size: 18px; }
 .validation { background: var(--okbg); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
 .vrow { margin-top: 4px; color: var(--muted); }
+.lead { margin-left: 6px; font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+.lead.good { background: #dcfce7; color: #166534; }
+.forecast span { display: flex; flex-direction: column; }
+.forecast small { color: var(--muted); font-size: 12px; }
+.hero-link { margin-top: 10px; background: rgba(255,255,255,.16); color: #fff; border: 1px solid rgba(255,255,255,.4); border-radius: 999px; padding: 6px 14px; font-weight: 600; cursor: pointer; text-align: left; }
+.hero-link:hover { background: rgba(255,255,255,.26); }
 
 /* legend */
 .legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }

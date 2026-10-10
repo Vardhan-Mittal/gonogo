@@ -11,11 +11,25 @@ export interface Status {
   report_depth_in: number | null; updated?: number;
 }
 export interface StormSummary { id: string; title: string; title_hi: string; start: string }
-export interface ReplayStep { time: string; rain_mm: number; statuses: Record<string, Status> }
+export interface ReplayStep {
+  time: string; rain_mm: number;
+  statuses: Record<string, Status>;
+  statuses_gauge_only: Record<string, Status>;
+}
+export interface ValidationSpot {
+  spot: string; source: string;
+  first_no_go: string | null; first_no_go_gauge_only: string | null;
+  hours_before_peak: number | null; hours_before_peak_gauge_only: number | null;
+}
 export interface Replay {
-  storm: StormSummary & { station: string; note: string; sources: string[] };
+  storm: StormSummary & { station: string; note: string; sources: string[]; stations_source: string | null };
+  spot_rain_factor: Record<string, number>;
   steps: ReplayStep[];
-  validation: { reported: number; flagged: number; spots: { spot: string; source: string; first_no_go: string | null }[] };
+  validation: {
+    reported: number; flagged: number; flagged_gauge_only: number;
+    peak_time: string; no_go_at_peak: number; total_spots: number;
+    spots: ValidationSpot[];
+  };
 }
 export interface DepthReport {
   usable: boolean; depth_inches: number; confidence: string;
