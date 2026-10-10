@@ -81,13 +81,44 @@ def test_replay_notify_sends_alerts(store, sent):
     assert sent[0][1].startswith("⏪ REPLAY")
 
 
-def test_report_flow(store, sent):
+def _fake_estimate(img, mt):
+    return {"usable": True, "depth_inches": 14, "confidence": "high",
+            "reference_object": "car tyre", "explanation": "half the tyre"}
+
+
+def test_report_flow_inline(store, sent):
     store.subscribe(1, ["ito"], "en")
-    fake = lambda img, mt: {"usable": True, "depth_inches": 14, "confidence": "high",
-                            "reference_object": "car tyre", "explanation": "half the tyre"}
-    code, out = handlers.submit_report(store, {"spot": "ito", "image": "aGk="}, estimate=fake)
-    assert code == 200 and out["status"]["level"] == risk.NO_GO
+    code, job = handlers.submit_report(store, {"spot": "ito", "image": "aGk="}, estimate=_fake_estimate)
+    assert code == 202 and job["state"] == "done"
+    assert job["status"]["level"] == risk.NO_GO
     assert len(sent) == 1 and "Citizen photo" in sent[0][1]
+    assert handlers.route(store, "GET", f"/reports/{job['id']}", dict)[1]["state"] == "done"
+
+
+def test_report_flow_async(store, sent):
+    queued = []
+    photos = {}
+    save = lambda spot, ts, img, mt: photos.setdefault(f"k-{spot}", img) and f"k-{spot}"
+    code, job = handlers.submit_report(store, {"spot": "ito", "image": "aGk="}, save_photo=save, dispatch=queued.append)
+    assert code == 202 and job["state"] == "pending" and "image" not in queued[0]
+    # The worker picks the task up later, outside the API request.
+    handlers.process_report(store, queued[0], estimate=_fake_estimate, load_photo=photos.get)
+    assert store.get_job(job["id"])["state"] == "done"
+
+
+def test_report_worker_failure_is_recorded(store):
+    def boom(img, mt):
+        raise RuntimeError("bedrock down")
+    _, job = handlers.submit_report(store, {"spot": "ito", "image": "aGk="}, estimate=boom)
+    assert job["state"] == "error"
+
+
+def test_vision_reply_parsing():
+    from gonogo import vision
+    out = vision.parse_json_reply('Sure:\n{"usable": true, "depth_inches": "9", "confidence": "high", '
+                                  '"reference_object": "kerb", "explanation": "above kerb"}')
+    assert out["depth_inches"] == 9.0 and out["usable"] is True
+    assert vision.parse_json_reply("no json here")["usable"] is False
 
 
 def test_routes(store):

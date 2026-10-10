@@ -85,7 +85,13 @@ def replay_notify(store, storm_id, step):
     return {"worsened": worsened, "sent": sent}
 
 
-def submit_report(store, body, estimate=None, save_photo=None):
+def submit_report(store, body, save_photo=None, dispatch=None, estimate=None):
+    """Accept a photo report and hand the slow model call to a worker.
+
+    API Gateway gives up after 30 s and a vision call can take longer, so on
+    AWS the photo goes to S3 and a worker Lambda is invoked asynchronously;
+    the client polls GET /reports/<id>. Locally (no dispatch) it runs inline.
+    """
     sp = data.spot(body.get("spot", ""))
     image = body.get("image", "")
     if sp is None or not image:
@@ -94,12 +100,40 @@ def submit_report(store, body, estimate=None, save_photo=None):
         return 413, {"error": "image too large; resize to 1280px before upload"}
     media_type = body.get("media_type", "image/jpeg")
 
-    from . import vision
-    result = (estimate or vision.estimate_depth)(image, media_type)
     now = datetime.now(IST)
-    report = {**result, "spot": sp["id"], "time": now.isoformat(timespec="seconds"), "epoch": int(now.timestamp())}
+    job = {"id": uuid.uuid4().hex, "spot": sp["id"], "state": "pending",
+           "time": now.isoformat(timespec="seconds"), "epoch": int(now.timestamp())}
+    store.put_job(job)
+    task = {"job_id": job["id"], "spot": sp["id"], "media_type": media_type}
     if save_photo:
-        report["photo_key"] = save_photo(sp["id"], report["time"], image, media_type)
+        task["photo_key"] = save_photo(sp["id"], job["time"], image, media_type)
+    else:
+        task["image"] = image
+
+    if dispatch:
+        dispatch(task)
+    else:
+        process_report(store, task, estimate=estimate)
+    return 202, store.get_job(job["id"])
+
+
+def process_report(store, task, estimate=None, load_photo=None):
+    """Estimate depth for one queued report, then update the spot and alert."""
+    job = store.get_job(task["job_id"])
+    sp = data.spot(task["spot"])
+    try:
+        image = task.get("image") or load_photo(task["photo_key"])
+        if estimate is None:
+            from . import vision
+            estimate = vision.estimate_depth
+        result = estimate(image, task["media_type"])
+    except Exception as exc:
+        print(f"report {task['job_id']} failed: {exc!r}")
+        store.put_job({**job, "state": "error", "error": "Could not check this photo. Please try again."})
+        return
+
+    report = {**result, "spot": sp["id"], "time": job["time"], "epoch": job["epoch"],
+              "photo_key": task.get("photo_key")}
     store.put_report(sp["id"], report)
 
     # Re-assess this spot straight away with the photo taken into account.
@@ -109,7 +143,7 @@ def submit_report(store, body, estimate=None, save_photo=None):
     store.put_status(sp["id"], status)
     if risk.is_worse(status["level"], prev.get("level")):
         telegram.notify_change(store, sp["id"], status)
-    return 200, {"report": report, "status": status}
+    store.put_job({**job, "state": "done", "report": report, "status": status})
 
 
 def _save_photo_s3(spot_id, ts, image_b64, media_type):
@@ -120,6 +154,24 @@ def _save_photo_s3(spot_id, ts, image_b64, media_type):
     key = f"reports/{spot_id}/{ts.replace(':', '-')}-{uuid.uuid4().hex[:6]}.{ext}"
     boto3.client("s3").put_object(Bucket=bucket, Key=key, Body=base64.b64decode(image_b64), ContentType=media_type)
     return key
+
+
+def _load_photo_s3(key):
+    import boto3
+
+    obj = boto3.client("s3").get_object(Bucket=os.environ["PHOTO_BUCKET"], Key=key)
+    return base64.b64encode(obj["Body"].read()).decode()
+
+
+def _dispatch_lambda(task):
+    import boto3
+
+    boto3.client("lambda").invoke(FunctionName=os.environ["REPORT_WORKER_FUNCTION"],
+                                  InvocationType="Event", Payload=json.dumps(task).encode())
+
+
+def report_worker_handler(event, context):
+    process_report(get_store(), event, load_photo=_load_photo_s3)
 
 
 def route(store, method, path, body_fn, headers=None):
@@ -141,7 +193,12 @@ def route(store, method, path, body_fn, headers=None):
         out = replay_notify(store, parts[1], int(body_fn().get("step", -1)))
         return (200, out) if out is not None else (400, {"error": "bad storm or step"})
     if method == "POST" and parts == ["reports"]:
-        return submit_report(store, body_fn(), save_photo=_save_photo_s3 if os.environ.get("PHOTO_BUCKET") else None)
+        on_aws = bool(os.environ.get("REPORT_WORKER_FUNCTION"))
+        return submit_report(store, body_fn(), save_photo=_save_photo_s3 if on_aws else None,
+                             dispatch=_dispatch_lambda if on_aws else None)
+    if method == "GET" and len(parts) == 2 and parts[0] == "reports":
+        job = store.get_job(parts[1])
+        return (200, job) if job else (404, {"error": "unknown report"})
     if method == "POST" and parts == ["refresh"]:
         return 200, run_engine(store)
     if method == "POST" and parts == ["telegram"]:

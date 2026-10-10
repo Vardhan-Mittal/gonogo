@@ -4,6 +4,7 @@ Single-table layout (pk, sk), payload stored as a JSON string in `data`:
   STATUS          / <spotId>        latest live status for a spot
   SUB             / <chatId>        Telegram subscriber {spots, lang}
   REPORT#<spotId> / <iso time>      citizen photo report
+  JOB             / <jobId>         photo report being processed {state, report, status}
 """
 import json
 import os
@@ -51,6 +52,12 @@ class MemoryStore:
     def latest_report(self, spot_id):
         reports = self._query(f"REPORT#{spot_id}")
         return reports[-1] if reports else None
+
+    def put_job(self, job):
+        self._put("JOB", job["id"], job)
+
+    def get_job(self, job_id):
+        return self._get("JOB", job_id)
 
 
 class DynamoStore(MemoryStore):

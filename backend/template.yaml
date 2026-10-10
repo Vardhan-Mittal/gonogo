@@ -20,11 +20,18 @@ Parameters:
   BedrockRegion:
     Type: String
     Default: us-east-1
+  AlertEmail:
+    Type: String
+    Default: ""
+    Description: Optional. Email for a $5/month AWS cost alert.
+
+Conditions:
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, ""]]
 
 Globals:
   Function:
     Runtime: python3.12
-    Architectures: [arm64]
+    Architectures: [x86_64]
     CodeUri: src/
     Timeout: 30
     MemorySize: 512
@@ -74,17 +81,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: gonogo.handlers.api_handler
-      Timeout: 60
+      Environment:
+        Variables:
+          REPORT_WORKER_FUNCTION: !Ref ReportWorkerFunction
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
         - S3WritePolicy: { BucketName: !Ref PhotoBucket }
-        - Statement:
-            - Effect: Allow
-              Action:
-                - bedrock:InvokeModel
-                - bedrock:InvokeModelWithResponseStream
-                - bedrock-mantle:*
-              Resource: "*"
+        - LambdaInvokePolicy: { FunctionName: !Ref ReportWorkerFunction }
       Events:
         Api:
           Type: HttpApi
@@ -92,6 +95,23 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /{proxy+}
             Method: ANY
+
+  # Runs the slow Bedrock vision call outside API Gateway's 30 s limit.
+  ReportWorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: gonogo.handlers.report_worker_handler
+      Timeout: 180
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref Table }
+        - S3ReadPolicy: { BucketName: !Ref PhotoBucket }
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+                - bedrock-mantle:*
+              Resource: "*"
 
   EngineFunction:
     Type: AWS::Serverless::Function
@@ -104,6 +124,18 @@ Resources:
           Type: ScheduleV2
           Properties:
             ScheduleExpression: rate(15 minutes)
+
+  CostAlert:
+    Type: AWS::Budgets::Budget
+    Condition: HasAlertEmail
+    Properties:
+      Budget:
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit: { Amount: 5, Unit: USD }
+      NotificationsWithSubscribers:
+        - Notification: { NotificationType: ACTUAL, ComparisonOperator: GREATER_THAN, Threshold: 80 }
+          Subscribers: [{ SubscriptionType: EMAIL, Address: !Ref AlertEmail }]
 
 Outputs:
   ApiUrl:
