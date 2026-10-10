@@ -34,8 +34,8 @@ class MemoryStore:
     def put_status(self, spot_id, status):
         self._put("STATUS", spot_id, {**status, "spot": spot_id, "updated": int(time.time())})
 
-    def subscribe(self, chat_id, spot_ids, lang):
-        self._put("SUB", str(chat_id), {"chat_id": str(chat_id), "spots": spot_ids, "lang": lang})
+    def subscribe(self, chat_id, spot_ids, lang, replay=False):
+        self._put("SUB", str(chat_id), {"chat_id": str(chat_id), "spots": spot_ids, "lang": lang, "replay": replay})
 
     def unsubscribe(self, chat_id):
         self._delete("SUB", str(chat_id))
@@ -52,6 +52,21 @@ class MemoryStore:
     def latest_report(self, spot_id):
         reports = self._query(f"REPORT#{spot_id}")
         return reports[-1] if reports else None
+
+    def take_report_slot(self, spot_id, now, per_spot_s, per_hour):
+        """Rate-limit photo reports: one per spot per `per_spot_s` seconds and
+        `per_hour` in total. Returns an error message, or None if allowed.
+        (Read-then-write is fine at this scale; a race only lets one extra in.)"""
+        last = self._get("RATE", f"spot#{spot_id}")
+        if last and now - last["epoch"] < per_spot_s:
+            return "A photo for this spot was just checked. Please try again in a minute."
+        hour = time.strftime("%Y%m%d%H", time.gmtime(now))
+        count = (self._get("RATE", f"hour#{hour}") or {}).get("count", 0)
+        if count >= per_hour:
+            return "Too many photo reports right now. Please try again later."
+        self._put("RATE", f"hour#{hour}", {"count": count + 1})
+        self._put("RATE", f"spot#{spot_id}", {"epoch": now})
+        return None
 
     def put_job(self, job):
         self._put("JOB", job["id"], job)

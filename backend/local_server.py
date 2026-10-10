@@ -4,11 +4,13 @@ Same routes as the deployed API Gateway + Lambda, for frontend development
 without AWS. Photo reports still call Bedrock, so they need AWS credentials.
 """
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
+os.environ.setdefault("ALLOW_REFRESH", "1")  # no EventBridge locally
 
 from gonogo.handlers import route, run_engine  # noqa: E402
 from gonogo.store import get_store  # noqa: E402

@@ -1,5 +1,7 @@
 # GoNoGo: know before you go
 
+[![CI](https://github.com/Vardhan-Mittal/gonogo/actions/workflows/ci.yml/badge.svg)](https://github.com/Vardhan-Mittal/gonogo/actions/workflows/ci.yml)
+
 **Flood go/no-go alerts for Delhi's underpasses, before you drive into one.**
 
 Built for *Environmental Hacks* (Bharat Builds Tour, WeMakeDevs × AWS), Heat & Water track.

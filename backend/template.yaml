@@ -51,6 +51,7 @@ Globals:
         BEDROCK_REGION: !Ref BedrockRegion
         BEDROCK_CONVERSE_MODEL_ID: !Ref BedrockConverseModelId
         DYNAMODB_ENDPOINT_URL: ""  # set only for `sam local` (see local/env.json)
+        ALLOW_REFRESH: ""  # "1" only locally; EventBridge runs the engine on AWS
 
 Resources:
   Table:
@@ -79,6 +80,9 @@ Resources:
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      DefaultRouteSettings:  # caps abuse and cost on the public API
+        ThrottlingBurstLimit: 50
+        ThrottlingRateLimit: 20
       CorsConfiguration:
         AllowOrigins: ["*"]
         AllowMethods: [GET, POST, OPTIONS]
@@ -132,6 +136,77 @@ Resources:
           Properties:
             ScheduleExpression: rate(15 minutes)
 
+  # ---- Observability -------------------------------------------------------
+  # The engine must run every 15 minutes; silence for an hour means alerts
+  # have stopped, which for a safety service is the failure that matters most.
+  EngineNotRunningAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: GoNoGo risk engine has not run in the last hour
+      Namespace: AWS/Lambda
+      MetricName: Invocations
+      Dimensions: [{ Name: FunctionName, Value: !Ref EngineFunction }]
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+
+  LambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: GoNoGo Lambda errors (API, engine or photo worker)
+      Metrics:
+        - Id: total
+          Expression: api + engine + worker
+          ReturnData: true
+        - Id: api
+          MetricStat: { Metric: { Namespace: AWS/Lambda, MetricName: Errors, Dimensions: [{ Name: FunctionName, Value: !Ref ApiFunction }] }, Period: 900, Stat: Sum }
+          ReturnData: false
+        - Id: engine
+          MetricStat: { Metric: { Namespace: AWS/Lambda, MetricName: Errors, Dimensions: [{ Name: FunctionName, Value: !Ref EngineFunction }] }, Period: 900, Stat: Sum }
+          ReturnData: false
+        - Id: worker
+          MetricStat: { Metric: { Namespace: AWS/Lambda, MetricName: Errors, Dimensions: [{ Name: FunctionName, Value: !Ref ReportWorkerFunction }] }, Period: 900, Stat: Sum }
+          ReturnData: false
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: GoNoGo
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {"type": "text", "x": 0, "y": 0, "width": 24, "height": 2,
+             "properties": {"markdown": "# GoNoGo: flood go/no-go for Delhi underpasses\nRisk engine every 15 min (EventBridge) · alerts via Telegram · photo depth checks on Amazon Bedrock (Nova Pro)"}},
+            {"type": "metric", "x": 0, "y": 2, "width": 12, "height": 6,
+             "properties": {"title": "Flood spots by level", "region": "${AWS::Region}", "stat": "Maximum", "period": 900, "view": "timeSeries",
+              "metrics": [["GoNoGo", "NoGoSpots", "Service", "gonogo", {"label": "Do not enter", "color": "#d62728"}],
+                          ["GoNoGo", "RiskySpots", "Service", "gonogo", {"label": "Risky", "color": "#ff9900"}]]}},
+            {"type": "metric", "x": 12, "y": 2, "width": 12, "height": 6,
+             "properties": {"title": "Alerts sent and photo reports", "region": "${AWS::Region}", "stat": "Sum", "period": 900, "view": "timeSeries",
+              "metrics": [["GoNoGo", "AlertsSent", "Service", "gonogo", {"label": "Telegram alerts"}],
+                          ["GoNoGo", "PhotoReports", "Service", "gonogo", {"label": "Photo reports"}]]}},
+            {"type": "metric", "x": 0, "y": 8, "width": 12, "height": 6,
+             "properties": {"title": "Lambda invocations", "region": "${AWS::Region}", "stat": "Sum", "period": 900, "view": "timeSeries",
+              "metrics": [["AWS/Lambda", "Invocations", "FunctionName", "${EngineFunction}", {"label": "Risk engine"}],
+                          ["AWS/Lambda", "Invocations", "FunctionName", "${ApiFunction}", {"label": "API"}],
+                          ["AWS/Lambda", "Invocations", "FunctionName", "${ReportWorkerFunction}", {"label": "Photo worker"}]]}},
+            {"type": "metric", "x": 12, "y": 8, "width": 12, "height": 6,
+             "properties": {"title": "Errors and photo-check latency", "region": "${AWS::Region}", "period": 900, "view": "timeSeries",
+              "metrics": [["AWS/Lambda", "Errors", "FunctionName", "${ApiFunction}", {"stat": "Sum", "label": "API errors"}],
+                          ["AWS/Lambda", "Errors", "FunctionName", "${EngineFunction}", {"stat": "Sum", "label": "Engine errors"}],
+                          ["AWS/Lambda", "Duration", "FunctionName", "${ReportWorkerFunction}", {"stat": "Average", "label": "Photo check ms", "yAxis": "right"}]]}},
+            {"type": "alarm", "x": 0, "y": 14, "width": 24, "height": 3,
+             "properties": {"title": "Health", "alarms": ["${EngineNotRunningAlarm.Arn}", "${LambdaErrorsAlarm.Arn}"]}}
+          ]
+        }
+
   CostAlert:
     Type: AWS::Budgets::Budget
     Condition: HasAlertEmail
@@ -149,3 +224,5 @@ Outputs:
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   TableName:
     Value: !Ref Table
+  DashboardUrl:
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards/dashboard/GoNoGo"

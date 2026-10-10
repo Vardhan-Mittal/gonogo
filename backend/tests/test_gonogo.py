@@ -82,13 +82,14 @@ def test_engine_alerts_only_on_worsening(store, sent):
 
 def test_telegram_start_subscribes(store, sent):
     telegram.handle_update(store, {"message": {"chat": {"id": 7}, "text": "/start hi-minto-zakhira-bogus"}})
-    assert store.subscriber(7) == {"chat_id": "7", "spots": ["minto", "zakhira"], "lang": "hi"}
+    assert store.subscriber(7) == {"chat_id": "7", "spots": ["minto", "zakhira"], "lang": "hi", "replay": False}
     telegram.handle_update(store, {"message": {"chat": {"id": 7}, "text": "/stop"}})
     assert store.subscriber(7) is None
 
 
 def test_replay_notify_sends_alerts(store, sent):
-    store.subscribe(1, ["minto"], "en")
+    store.subscribe(1, ["minto"], "en", replay=True)
+    store.subscribe(2, ["minto"], "en")  # didn't opt in with /demo
     rp = data.replay("2024-06-28")
     step = next(i for i, s in enumerate(rp["steps"]) if s["statuses"]["minto"]["level"] != risk.SAFE)
     out = handlers.replay_notify(store, "2024-06-28", step)
@@ -140,3 +141,27 @@ def test_routes(store):
     assert handlers.route(store, "GET", "/spots", dict)[0] == 200
     assert handlers.route(store, "GET", "/replay/nope", dict)[0] == 404
     assert handlers.route(store, "POST", "/reports", lambda: {"spot": "x"})[0] == 400
+
+
+def test_demo_command_toggles_replay_alerts(store, sent):
+    telegram.handle_update(store, {"message": {"chat": {"id": 5}, "text": "/start en-minto"}})
+    assert store.subscriber(5)["replay"] is False
+    telegram.handle_update(store, {"message": {"chat": {"id": 5}, "text": "/demo"}})
+    assert store.subscriber(5)["replay"] is True
+    # Re-subscribing to new spots keeps the opt-in.
+    telegram.handle_update(store, {"message": {"chat": {"id": 5}, "text": "/start en-ito"}})
+    assert store.subscriber(5) == {"chat_id": "5", "spots": ["ito"], "lang": "en", "replay": True}
+
+
+def test_photo_reports_are_rate_limited(store):
+    body = {"spot": "ito", "image": "aGk="}
+    assert handlers.submit_report(store, body, estimate=_fake_estimate)[0] == 202
+    code, out = handlers.submit_report(store, body, estimate=_fake_estimate)
+    assert code == 429 and "minute" in out["error"]
+    assert handlers.submit_report(store, {**body, "spot": "minto"}, estimate=_fake_estimate)[0] == 202
+    assert handlers.submit_report(store, {**body, "spot": "zakhira", "media_type": "image/gif"})[0] == 400
+
+
+def test_refresh_is_local_only(store, monkeypatch):
+    monkeypatch.delenv("ALLOW_REFRESH", raising=False)
+    assert handlers.route(store, "POST", "/refresh", dict)[0] == 404

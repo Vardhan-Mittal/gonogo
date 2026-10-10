@@ -65,10 +65,16 @@ def format_alert(spot, status, lang="en", replay_label=None):
 
 
 def notify_change(store, spot_id, status, replay_label=None):
-    """Alert every subscriber watching this spot. Returns the number sent."""
+    """Alert every subscriber watching this spot. Returns the number sent.
+
+    Replay alerts (past storms) only go to chats that opted in with /demo,
+    so nobody can use the public replay endpoint to spam real subscribers.
+    """
     sp = data.spot(spot_id)
     sent = 0
     for sub in store.subscribers():
+        if replay_label and not sub.get("replay"):
+            continue
         if spot_id in sub["spots"]:
             try:
                 send(sub["chat_id"], format_alert(sp, status, sub.get("lang", "en"), replay_label))
@@ -100,11 +106,23 @@ def handle_update(store, update):
             send(chat_id, "Open GoNoGo, pick the spots on your route and tap 'Get Telegram alerts'.\n"
                           "GoNoGo खोलें, अपने रास्ते के स्पॉट चुनें और 'Telegram अलर्ट' दबाएं।")
             return
-        store.subscribe(chat_id, spot_ids, lang)
+        existing = store.subscriber(chat_id) or {}
+        store.subscribe(chat_id, spot_ids, lang, replay=existing.get("replay", False))
         names = ", ".join((data.spot(s)["name_hi"] if lang == "hi" else data.spot(s)["name"]) for s in spot_ids)
-        send(chat_id, (f"✅ आप इन जगहों के अलर्ट पाएंगे: {names}\n/status – अभी की स्थिति, /stop – बंद करें"
+        send(chat_id, (f"✅ आप इन जगहों के अलर्ट पाएंगे: {names}\n/status – अभी की स्थिति, /stop – बंद करें, "
+                       "/demo – पुरानी बारिश के रीप्ले अलर्ट भी पाएं"
                        if lang == "hi" else
-                       f"✅ You'll get alerts for: {names}\n/status – current status, /stop – unsubscribe"))
+                       f"✅ You'll get alerts for: {names}\n/status – current status, /stop – unsubscribe, "
+                       "/demo – also get alerts from past-storm replays"))
+    elif text.startswith("/demo"):
+        sub = store.subscriber(chat_id)
+        if not sub:
+            send(chat_id, "Subscribe from the GoNoGo site first. / पहले GoNoGo साइट से सब्सक्राइब करें।")
+            return
+        on = not sub.get("replay", False)
+        store.subscribe(chat_id, sub["spots"], sub.get("lang", "en"), replay=on)
+        send(chat_id, ("⏪ Replay alerts ON: storm replays on the site will message you. Send /demo again to turn off."
+                       if on else "Replay alerts OFF. You'll only get live alerts."))
     elif text.startswith("/stop"):
         store.unsubscribe(chat_id)
         send(chat_id, "Unsubscribed. / अलर्ट बंद।")

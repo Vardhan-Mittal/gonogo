@@ -7,11 +7,13 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from . import data, risk, telegram, weather
+from . import data, metrics, risk, telegram, weather
 from .store import get_store
 
 IST = timezone(timedelta(hours=5, minutes=30))
 REPORT_TTL_S = 60 * 60  # a photo report overrides the forecast for an hour
+REPORT_PER_SPOT_S = 30  # at most one photo per spot every 30 s
+REPORT_PER_HOUR = 200   # and 200 photos per hour in total (Bedrock cost cap)
 
 
 def _fresh_report_depth(store, spot_id, now=None):
@@ -27,14 +29,17 @@ def run_engine(store, windows=None):
     spot_list = data.spots()
     windows = windows or weather.rain_windows(spot_list)
     previous = store.statuses()
-    changed = []
+    changed, levels, sent = [], [], 0
     for sp in spot_list:
         r1, r3, f1 = windows[sp["id"]]
         status = risk.assess(sp, r1, r3, f1, _fresh_report_depth(store, sp["id"]))
         store.put_status(sp["id"], status)
+        levels.append(status["level"])
         if risk.is_worse(status["level"], (previous.get(sp["id"]) or {}).get("level")):
             changed.append(sp["id"])
-            telegram.notify_change(store, sp["id"], status)
+            sent += telegram.notify_change(store, sp["id"], status)
+    metrics.emit(NoGoSpots=levels.count(risk.NO_GO), RiskySpots=levels.count(risk.RISKY),
+                 SpotsWorsened=len(changed), AlertsSent=sent)
     return {"assessed": len(spot_list), "worsened": changed}
 
 
@@ -99,8 +104,13 @@ def submit_report(store, body, save_photo=None, dispatch=None, estimate=None):
     if len(image) > 7_000_000:
         return 413, {"error": "image too large; resize to 1280px before upload"}
     media_type = body.get("media_type", "image/jpeg")
+    if media_type not in ("image/jpeg", "image/png"):
+        return 400, {"error": "photo must be JPEG or PNG"}
 
     now = datetime.now(IST)
+    limited = store.take_report_slot(sp["id"], int(now.timestamp()), REPORT_PER_SPOT_S, REPORT_PER_HOUR)
+    if limited:
+        return 429, {"error": limited}
     job = {"id": uuid.uuid4().hex, "spot": sp["id"], "state": "pending",
            "time": now.isoformat(timespec="seconds"), "epoch": int(now.timestamp())}
     store.put_job(job)
@@ -141,8 +151,10 @@ def process_report(store, task, estimate=None, load_photo=None):
     status = risk.assess(sp, prev.get("rain_1h_mm", 0.0), prev.get("rain_3h_mm", 0.0),
                          prev.get("forecast_1h_mm", 0.0), _fresh_report_depth(store, sp["id"]))
     store.put_status(sp["id"], status)
+    sent = 0
     if risk.is_worse(status["level"], prev.get("level")):
-        telegram.notify_change(store, sp["id"], status)
+        sent = telegram.notify_change(store, sp["id"], status)
+    metrics.emit(PhotoReports=1, PhotoDepthInches=float(result.get("depth_inches") or 0), AlertsSent=sent)
     store.put_job({**job, "state": "done", "report": report, "status": status})
 
 
@@ -199,7 +211,8 @@ def route(store, method, path, body_fn, headers=None):
     if method == "GET" and len(parts) == 2 and parts[0] == "reports":
         job = store.get_job(parts[1])
         return (200, job) if job else (404, {"error": "unknown report"})
-    if method == "POST" and parts == ["refresh"]:
+    if method == "POST" and parts == ["refresh"] and os.environ.get("ALLOW_REFRESH") == "1":
+        # Local runs only; on AWS, EventBridge Scheduler runs the engine.
         return 200, run_engine(store)
     if method == "POST" and parts == ["telegram"]:
         secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
