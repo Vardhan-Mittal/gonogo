@@ -57,6 +57,15 @@ export default function App() {
   const [bot, setBot] = useState("");
   const [reportSpot, setReportSpot] = useState<Spot | null>(null);
   const [error, setError] = useState("");
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => el.classList.toggle("paused", !e.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => save("gonogo.lang", lang), [lang]);
   useEffect(() => save("gonogo.route", route), [route]);
@@ -153,7 +162,7 @@ export default function App() {
   return (
     <div className="min-h-svh">
       {/* ---------- Nav ---------- */}
-      <header className="fixed inset-x-0 top-0 z-[900] border-b border-white/5 bg-black/30 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-[900] border-b border-white/5 bg-[#07070f]/90">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
           <a href="#top" className="flex items-center gap-2 font-semibold tracking-tight">
             <span className="flex flex-col gap-[3px] rounded-md bg-white/5 p-1.5 ring-1 ring-white/10" aria-hidden>
@@ -183,7 +192,7 @@ export default function App() {
       </header>
 
       {/* ---------- Hero ---------- */}
-      <section id="top" className="night-sky rain relative flex min-h-svh items-center justify-center overflow-hidden px-4 pt-24 pb-16">
+      <section id="top" ref={heroRef} className="night-sky rain relative flex min-h-svh items-center justify-center overflow-hidden px-4 pt-24 pb-16">
         <div className="pointer-events-none absolute inset-0 grid place-items-center" aria-hidden>
           <div className="drop" />
         </div>
@@ -353,9 +362,10 @@ export default function App() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <Card className="h-[62vh] min-h-[420px] overflow-hidden py-0 lg:sticky lg:top-20 lg:h-[72vh]">
             <MapContainer center={[28.64, 77.2]} zoom={11} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
-              <TileLayer className="tiles-night"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer
+                attribution='Tiles &copy; Esri · Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" maxZoom={16} />
+              <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}" maxZoom={16} />
               {spots.map((s) => {
                 const lvl = statuses[s.id]?.level ?? "SAFE";
                 const mine = route.includes(s.id);
@@ -374,7 +384,7 @@ export default function App() {
             </MapContainer>
           </Card>
 
-          <div className="grid content-start gap-3 lg:max-h-[72vh] lg:overflow-y-auto lg:pr-1">
+          <div className="flex flex-col gap-3 lg:max-h-[72vh] lg:overflow-y-auto lg:overscroll-contain lg:pr-1 [&>*]:shrink-0">
             <Card id="route" className="scroll-mt-20 gap-4 py-5">
               <CardHeader className="gap-1">
                 <CardTitle className="flex items-center gap-2">
