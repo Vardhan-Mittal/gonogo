@@ -9,6 +9,7 @@ webhook. Uses your current AWS login (`aws login`).
 import getpass
 import json
 import os
+import re
 import secrets
 import shutil
 import subprocess
@@ -23,9 +24,26 @@ STACK, REGION = "gonogo", "ap-southeast-2"
 BACKEND = Path(__file__).parents[1]
 
 
+def read_token():
+    """Pull the token out of whatever was pasted.
+
+    Terminal pastes into a hidden prompt can carry control characters
+    (e.g. a literal Ctrl+V) or arrive twice, so match the token's shape
+    instead of trusting the raw input. Never echo the token in errors.
+    """
+    raw = getpass.getpass("Paste your Telegram bot token (from @BotFather; input is hidden), then Enter: ")
+    match = re.search(r"\d{6,12}:[A-Za-z0-9_-]{35}", raw)
+    if not match:
+        sys.exit("That doesn't look like a bot token (format 123456789:ABC...). Run the script again.")
+    return match.group(0)
+
+
 def main():
-    token = getpass.getpass("Paste your Telegram bot token (from @BotFather; input is hidden): ").strip()
-    me = telegram(token, "getMe", {})
+    token = read_token()
+    try:
+        me = telegram(token, "getMe", {})
+    except Exception as exc:
+        sys.exit(f"Could not reach Telegram with that token ({type(exc).__name__}). Check it and try again.")
     if not me.get("ok"):
         sys.exit("Telegram rejected that token.")
     username = me["result"]["username"]
@@ -33,7 +51,8 @@ def main():
     print(f"Bot: @{username}. Redeploying the stack with Telegram settings (2-4 min)...")
 
     import boto3
-    creds = boto3.Session().get_credentials().get_frozen_credentials()
+    # `aws login` credentials need a region even to refresh themselves.
+    creds = boto3.Session(region_name=REGION).get_credentials().get_frozen_credentials()
     env = {**os.environ, "AWS_ACCESS_KEY_ID": creds.access_key, "AWS_SECRET_ACCESS_KEY": creds.secret_key,
            "AWS_SESSION_TOKEN": creds.token or "", "AWS_DEFAULT_REGION": REGION}
     sam = shutil.which("sam") or r"C:\Program Files\Amazon\AWSSAMCLI\bin\sam.cmd"
@@ -49,10 +68,13 @@ def main():
 
     url = api_url(STACK, REGION).rstrip("/") + "/telegram"
     print("Webhook:", telegram(token, "setWebhook", {"url": url, "secret_token": secret, "allowed_updates": ["message"]}).get("description"))
-    telegram(token, "setMyCommands", {"commands": [
-        {"command": "status", "description": "Current status of my spots / मेरी जगहों की स्थिति"},
-        {"command": "stop", "description": "Stop alerts / अलर्ट बंद करें"},
-    ]})
+    try:  # optional: the command menu shown in Telegram
+        telegram(token, "setMyCommands", {"commands": [
+            {"command": "status", "description": "Current status of my spots / मेरी जगहों की स्थिति"},
+            {"command": "stop", "description": "Stop alerts / अलर्ट बंद करें"},
+        ]})
+    except Exception as exc:
+        print(f"(Skipped the command menu: {type(exc).__name__}. /status and /stop still work.)")
     print(f"Done. Open https://t.me/{username} or use 'Get Telegram alerts' on the site.")
 
 
