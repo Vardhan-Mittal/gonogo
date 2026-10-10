@@ -16,14 +16,15 @@ Parameters:
     Default: ""
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-opus-5-5
+    Default: none
+    Description: Claude model for the Anthropic SDK path, or "none" to use only Converse
   BedrockRegion:
     Type: String
     Default: ap-southeast-2
   BedrockConverseModelId:
     Type: String
-    Default: au.anthropic.claude-opus-5-5
-    Description: Inference profile used by the Converse fallback
+    Default: apac.amazon.nova-pro-v1:0
+    Description: Bedrock model for Converse (Amazon Nova Pro reads images)
   AlertEmail:
     Type: String
     Default: ""

@@ -24,7 +24,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 - **Safe / Risky / Do not enter** for 19 known Delhi flood spots, updated every 15 minutes from rainfall in the last hour, the last 3 hours and the next hour.
 - Levels follow **Delhi PWD's own underpass procedure**: start pumps at 6–8 inches of water, stop traffic above 8 inches.
 - **Telegram alerts in Hindi or English** for the spots on your daily route, sent when a spot gets worse.
-- **Citizen photo reports:** Claude on Amazon Bedrock estimates water depth against a car tyre, kerb or person, and the spot updates immediately.
+- **Citizen photo reports:** Amazon Nova Pro on Amazon Bedrock estimates water depth against a car tyre, kerb or person, and the spot updates immediately.
 - **Storm replay** of real Delhi storms (28 Jun 2024, 31 Jul 2024, 19 Jul 2020), checked against flooding the news reported.
 
 ## Built on AWS
@@ -36,7 +36,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 | Amazon EventBridge Scheduler | Runs the risk engine every 15 minutes |
 | Amazon DynamoDB | Live status, subscribers, photo reports |
 | Amazon S3 | Citizen photos (private, 30-day expiry) |
-| Amazon Bedrock (Claude) | Water-depth estimate from photos |
+| Amazon Bedrock (Amazon Nova Pro) | Water-depth estimate from photos (a Claude path via the Anthropic SDK is built in for accounts with Anthropic models enabled) |
 | AWS SAM | Infrastructure as code ([`backend/template.yaml`](backend/template.yaml)) |
 
 ```
@@ -45,7 +45,7 @@ EventBridge (15 min) ─► Lambda risk engine ─► Open-Meteo rainfall
                               ├─► DynamoDB (status)
                               └─► Telegram alerts on worsening
 Web app ─► API Gateway ─► Lambda API ─► DynamoDB · S3
-                                 └─(async)─► Lambda worker ─► Bedrock (photo depth) ─► alerts
+                                 └─(async)─► Lambda worker ─► Bedrock / Nova Pro (photo depth) ─► alerts
 ```
 
 ## Run locally

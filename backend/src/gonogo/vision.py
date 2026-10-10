@@ -99,8 +99,11 @@ def parse_json_reply(text):
 
 
 def estimate_depth(image_b64, media_type="image/jpeg"):
-    try:
-        return _via_anthropic_sdk(image_b64, media_type)
-    except Exception as exc:
-        print(f"anthropic SDK path failed ({exc!r}); falling back to Converse")
+    # BEDROCK_MODEL_ID=none skips the Anthropic SDK path, e.g. on accounts
+    # where only Amazon models are enabled (Converse with Nova then answers).
+    if _model() not in ("", "none"):
+        try:
+            return _via_anthropic_sdk(image_b64, media_type)
+        except Exception as exc:
+            print(f"anthropic SDK path failed ({exc!r}); falling back to Converse")
     return _via_converse(image_b64, media_type)
