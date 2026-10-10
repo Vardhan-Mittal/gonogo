@@ -31,7 +31,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 
 | Service | Role |
 |---|---|
-| AWS Lambda | API and the risk engine (Python 3.12) |
+| AWS Lambda | API, the risk engine, and an async photo-report worker (Python 3.12) |
 | Amazon API Gateway (HTTP API) | Public API for the web app and the Telegram webhook |
 | Amazon EventBridge Scheduler | Runs the risk engine every 15 minutes |
 | Amazon DynamoDB | Live status, subscribers, photo reports |
@@ -44,7 +44,8 @@ EventBridge (15 min) ─► Lambda risk engine ─► Open-Meteo rainfall
                               │
                               ├─► DynamoDB (status)
                               └─► Telegram alerts on worsening
-Web app ─► API Gateway ─► Lambda API ─► DynamoDB · S3 · Bedrock (photo depth)
+Web app ─► API Gateway ─► Lambda API ─► DynamoDB · S3
+                                 └─(async)─► Lambda worker ─► Bedrock (photo depth) ─► alerts
 ```
 
 ## Run locally
@@ -58,13 +59,32 @@ cd frontend && npm install && npm run dev
 ## Deploy
 
 ```bash
-cd backend && sam build && sam deploy --guided --region ap-south-1
+cd backend
+sam build
+sam deploy --guided --stack-name gonogo --region ap-south-1   # asks for Telegram token/username/secret and an optional cost-alert email
+python scripts/set_telegram_webhook.py                         # needs TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET in the environment
 ```
 
-## Data and honesty notes
+Then set `VITE_API_URL` to the stack's `ApiUrl` output where the frontend is hosted and rebuild. Without it, the site runs on bundled replay data (`backend/export_static.py`).
 
-- Spot coordinates are approximate; the list comes from Delhi PWD / traffic police hotspot reporting.
-- Gridded forecast data badly undercounts Delhi cloudbursts: for 28 Jun 2024, Open-Meteo shows ~24 mm against IMD's observed 228 mm. Replays therefore use IMD's observed totals, with hourly shapes reconstructed from IMD press releases; see `backend/src/gonogo/data/storms.json`. Live mode uses forecasts, which is why the citizen photo layer exists.
+## Does it work? Replaying real storms
+
+Each storm is replayed hour by hour. Every spot's rain is scaled from the storm's IMD station totals (inverse-distance weighting), and the model runs twice: with a 1-hour rain forecast (the next hour's observed rain stands in for a good nowcast) and with **rain gauges only**.
+
+| Storm | Spots reported flooded in the news | Flagged "Do not enter" (with forecast) | Flagged (gauges only) |
+|---|---|---|---|
+| 28 Jun 2024 | Pragati Maidan tunnel, Minto Bridge, ITO, Dhaula Kuan, Azad Market | 5 of 5: four of them 1–2 h before the heaviest hour; ITO 1 h after | 5 of 5 |
+| 31 Jul 2024 | Ghazipur, Pragati Maidan (Bharat Mandapam) | 2 of 2, 1 h before the heaviest hour | 2 of 2, at the heaviest hour |
+| 19 Jul 2020 | Minto Bridge (driver drowned) | 1 of 1, 2 h before the heaviest hour | 1 of 1, 1 h before |
+
+What this does **not** show: news reports don't give the minute each spot flooded, so lead time is measured against the hour of heaviest rain, and spots the news didn't mention can't be scored as false alarms.
+
+## Limits we know about
+
+- **Thresholds are a starting point, not calibrated.** Spots flip at 20–40 mm/h (lower for underpasses and spots that flood every year), mapped onto Delhi PWD's 6-inch / 8-inch underpass procedure. The replays are how they get tuned; drainage capacity per spot isn't public.
+- **Forecasts miss cloudbursts.** For 28 Jun 2024, Open-Meteo shows ~24 mm where IMD observed 228 mm. Replays use IMD observations (hourly shapes reconstructed from IMD press releases; see `backend/src/gonogo/data/storms.json`). Live mode uses forecasts, which is exactly why the citizen photo layer exists.
+- **Photo depth is an estimate.** The model is told to round up when unsure, and a photo report expires after an hour.
+- **Coordinates** were checked against OpenStreetMap; most are within 0.5 km, a few within 1 km.
 
 ## Credits
 

@@ -5,7 +5,7 @@
      {"date": "2025-05-25", "text": "Underpass flooded again; two PWD engineers suspended", "url": "https://www.dailypioneer.com/2025/state-editions/cm-orders-suspension-of-two-engineers-over-flooding-at-minto-bridge-underpass.html"}
    ]},
   {"id": "prahladpur", "name": "Pul Prahladpur underpass", "name_hi": "पुल प्रह्लादपुर अंडरपास", "type": "underpass", "lat": 28.5009, "lon": 77.2930, "perennial": true, "incidents": []},
-  {"id": "zakhira", "name": "Zakhira underpass", "name_hi": "ज़खीरा अंडरपास", "type": "underpass", "lat": 28.6620, "lon": 77.1460, "perennial": true,
+  {"id": "zakhira", "name": "Zakhira underpass", "name_hi": "ज़खीरा अंडरपास", "type": "underpass", "lat": 28.6676, "lon": 77.1674, "perennial": true,
    "incidents": [
      {"date": "2025-07-29", "text": "Nearly six feet of water; traffic between Zakhira and Moti Nagar halted", "url": "https://www.theweek.in/wire-updates/national/2025/07/29/des26-dl-3rdld-weather.html"}
    ]},
@@ -17,7 +17,7 @@
   {"id": "dhaulakuan", "name": "Dhaula Kuan underpass", "name_hi": "धौला कुआं अंडरपास", "type": "underpass", "lat": 28.5920, "lon": 77.1620, "perennial": false, "incidents": []},
   {"id": "palam", "name": "Palam underpass", "name_hi": "पालम अंडरपास", "type": "underpass", "lat": 28.5880, "lon": 77.0880, "perennial": false, "incidents": []},
   {"id": "moolchand", "name": "Moolchand underpass", "name_hi": "मूलचंद अंडरपास", "type": "underpass", "lat": 28.5650, "lon": 77.2360, "perennial": false, "incidents": []},
-  {"id": "pragati", "name": "Pragati Maidan tunnel", "name_hi": "प्रगति मैदान टनल", "type": "tunnel", "lat": 28.6150, "lon": 77.2430, "perennial": false,
+  {"id": "pragati", "name": "Pragati Maidan tunnel", "name_hi": "प्रगति मैदान टनल", "type": "tunnel", "lat": 28.6159, "lon": 77.2380, "perennial": false,
    "incidents": [
      {"date": "2024-06-28", "text": "Tunnel shut after Delhi's heaviest June rain in 88 years", "url": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"}
    ]},
