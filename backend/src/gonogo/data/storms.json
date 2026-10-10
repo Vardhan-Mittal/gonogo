@@ -1,0 +1,51 @@
+[
+  {
+    "id": "2024-06-28",
+    "title": "28 June 2024: wettest June day in 88 years",
+    "title_hi": "28 जून 2024: 88 साल में जून की सबसे भारी बारिश",
+    "station": "IMD Safdarjung",
+    "start": "2024-06-27T22:00",
+    "rain_mm_per_hour": [6.6, 2.0, 5.0, 12.0, 18.0, 45.0, 58.0, 45.5, 20.0, 10.0, 6.0, 2.0, 0.0],
+    "note": "Hourly shape reconstructed from IMD's observed totals: 228.1 mm in 24 h to 08:30 and 148.5 mm between 02:30 and 05:30. Gridded reanalysis (Open-Meteo/ERA5) shows only ~24 mm for this day, so observed figures are used.",
+    "sources": [
+      "https://scroll.in/latest/1069909/delhi-sees-highest-single-day-june-rainfall-in-88-years",
+      "https://mausam.imd.gov.in/Forecast/marquee_data/Press%20Release%20Delhi%20heavy%20rainfall%2028-06-2024.pdf"
+    ],
+    "spot_factor": {},
+    "reported_flooded": [
+      {"spot": "pragati", "source": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"}
+    ]
+  },
+  {
+    "id": "2024-07-31",
+    "title": "31 July 2024: evening cloudburst, Ghazipur drowning",
+    "title_hi": "31 जुलाई 2024: शाम की तेज़ बारिश, गाज़ीपुर हादसा",
+    "station": "IMD Safdarjung (Mayur Vihar scaled)",
+    "start": "2024-07-31T16:00",
+    "rain_mm_per_hour": [0.0, 3.0, 28.0, 42.0, 25.0, 8.0, 3.0, 0.0],
+    "note": "Hourly shape approximated; totals from IMD reports (100+ mm at Safdarjung, 147.5 mm at Mayur Vihar). East Delhi spots are scaled by the Mayur Vihar / Safdarjung ratio.",
+    "sources": [
+      "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"
+    ],
+    "spot_factor": {"ghazipur": 1.35},
+    "reported_flooded": [
+      {"spot": "ghazipur", "source": "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"}
+    ]
+  },
+  {
+    "id": "2020-07-19",
+    "title": "19 July 2020: Minto Bridge drowning",
+    "title_hi": "19 जुलाई 2020: मिंटो ब्रिज हादसा",
+    "station": "IMD Safdarjung",
+    "start": "2020-07-19T03:00",
+    "rain_mm_per_hour": [0.0, 5.0, 22.0, 30.0, 12.0, 5.8, 0.0],
+    "note": "Hourly shape approximated; total of 74.8 mm by 08:30 from IMD as reported.",
+    "sources": [
+      "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"
+    ],
+    "spot_factor": {},
+    "reported_flooded": [
+      {"spot": "minto", "source": "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"}
+    ]
+  }
+]

@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: GoNoGo - flood go/no-go alerts for Delhi underpasses
+
+Parameters:
+  TelegramBotToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+  TelegramBotUsername:
+    Type: String
+    Default: ""
+  TelegramWebhookSecret:
+    Type: String
+    NoEcho: true
+    Default: ""
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-opus-5-5
+  BedrockRegion:
+    Type: String
+    Default: us-east-1
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]
+    CodeUri: src/
+    Timeout: 30
+    MemorySize: 512
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref Table
+        PHOTO_BUCKET: !Ref PhotoBucket
+        TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
+        TELEGRAM_BOT_USERNAME: !Ref TelegramBotUsername
+        TELEGRAM_WEBHOOK_SECRET: !Ref TelegramWebhookSecret
+        BEDROCK_MODEL_ID: !Ref BedrockModelId
+        BEDROCK_REGION: !Ref BedrockRegion
+
+Resources:
+  Table:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+
+  PhotoBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - { Id: expire-photos, Status: Enabled, ExpirationInDays: 30 }
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ["*"]
+        AllowMethods: [GET, POST, OPTIONS]
+        AllowHeaders: [Content-Type]
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: gonogo.handlers.api_handler
+      Timeout: 60
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref Table }
+        - S3WritePolicy: { BucketName: !Ref PhotoBucket }
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+                - bedrock-mantle:*
+              Resource: "*"
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+  EngineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: gonogo.handlers.engine_handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref Table }
+      Events:
+        Every15Minutes:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: rate(15 minutes)
+
+Outputs:
+  ApiUrl:
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  TableName:
+    Value: !Ref Table
