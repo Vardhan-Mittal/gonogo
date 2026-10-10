@@ -9,3 +9,4 @@ __pycache__/
 !.env.example
 samconfig.toml
 .claude/
+gonogo-build.zip

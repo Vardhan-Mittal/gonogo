@@ -2,7 +2,7 @@
 
     set TELEGRAM_BOT_TOKEN=...          (from @BotFather)
     set TELEGRAM_WEBHOOK_SECRET=...     (same value passed to sam deploy)
-    python scripts/set_telegram_webhook.py [--stack gonogo] [--region ap-south-1]
+    python scripts/set_telegram_webhook.py [--stack gonogo] [--region ap-southeast-2]
 
 The API URL is read from the CloudFormation stack outputs.
 """
@@ -34,7 +34,7 @@ def api_url(stack, region):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stack", default="gonogo")
-    ap.add_argument("--region", default="ap-south-1")
+    ap.add_argument("--region", default="ap-southeast-2")
     args = ap.parse_args()
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN")

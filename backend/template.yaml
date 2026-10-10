@@ -19,7 +19,11 @@ Parameters:
     Default: anthropic.claude-opus-5-5
   BedrockRegion:
     Type: String
-    Default: us-east-1
+    Default: ap-southeast-2
+  BedrockConverseModelId:
+    Type: String
+    Default: au.anthropic.claude-opus-5-5
+    Description: Inference profile used by the Converse fallback
   AlertEmail:
     Type: String
     Default: ""
@@ -44,6 +48,7 @@ Globals:
         TELEGRAM_WEBHOOK_SECRET: !Ref TelegramWebhookSecret
         BEDROCK_MODEL_ID: !Ref BedrockModelId
         BEDROCK_REGION: !Ref BedrockRegion
+        BEDROCK_CONVERSE_MODEL_ID: !Ref BedrockConverseModelId
         DYNAMODB_ENDPOINT_URL: ""  # set only for `sam local` (see local/env.json)
 
 Resources:

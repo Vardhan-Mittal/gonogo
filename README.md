@@ -4,7 +4,7 @@
 
 Built for *Environmental Hacks* (Bharat Builds Tour, WeMakeDevs × AWS), Heat & Water track.
 
-**Live demo:** https://gonogo-tau.vercel.app (storm replay works now; live alerts once the AWS backend is connected)
+**Live demo:** https://gonogo-tau.vercel.app (backend on AWS Lambda in ap-southeast-2)
 
 ## The problem
 
@@ -61,8 +61,8 @@ cd frontend && npm install && npm run dev
 ```bash
 cd backend
 sam build
-sam deploy --guided --stack-name gonogo --region ap-south-1   # asks for Telegram token/username/secret and an optional cost-alert email
-python scripts/set_telegram_webhook.py                         # needs TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET in the environment
+sam deploy --stack-name gonogo --region ap-southeast-2 --resolve-s3 --capabilities CAPABILITY_IAM
+python scripts/connect_telegram.py     # asks for the bot token, redeploys with it, registers the webhook
 ```
 
 Then set `VITE_API_URL` to the stack's `ApiUrl` output where the frontend is hosted and rebuild. Without it, the site runs on bundled replay data (`backend/export_static.py`).
