@@ -6,7 +6,9 @@
 
 Built for *Environmental Hacks* (Bharat Builds Tour, WeMakeDevs × AWS), Heat & Water track.
 
-**Live demo:** https://gonogo-tau.vercel.app (backend on AWS Lambda in ap-southeast-2)
+**Live demo:** https://gonogo-tau.vercel.app (backend on AWS Lambda in ap-southeast-2) · **Telegram bot:** [@Vami25bot](https://t.me/Vami25bot)
+
+![Replaying 28 June 2024: 13 of 19 spots already 'Do not enter' at 03:00, an hour before the heaviest rain](docs/screenshots/replay-28-june-2024.jpg)
 
 ## The problem
 
@@ -38,17 +40,33 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 | Amazon EventBridge Scheduler | Runs the risk engine every 15 minutes |
 | Amazon DynamoDB | Live status, subscribers, photo reports |
 | Amazon S3 | Citizen photos (private, 30-day expiry) |
+| Amazon CloudWatch | GoNoGo dashboard, custom metrics (spots by level, alerts sent, photo reports), alarms if the engine stops running or Lambdas error |
 | Amazon Bedrock (Amazon Nova Pro) | Water-depth estimate from photos (a Claude path via the Anthropic SDK is built in for accounts with Anthropic models enabled) |
 | AWS SAM | Infrastructure as code ([`backend/template.yaml`](backend/template.yaml)) |
 
-```
-EventBridge (15 min) ─► Lambda risk engine ─► Open-Meteo rainfall
-                              │
-                              ├─► DynamoDB (status)
-                              └─► Telegram alerts on worsening
-Web app ─► API Gateway ─► Lambda API ─► DynamoDB · S3
-                                 └─(async)─► Lambda worker ─► Bedrock / Nova Pro (photo depth) ─► alerts
-```
+![GoNoGo architecture on AWS](docs/architecture.svg)
+
+## Security and reliability
+
+- **No abuse of the public API:** API Gateway throttling (20 req/s, burst 50); photo reports are JPEG/PNG only, one per spot every 30 s and 200 an hour in total, which also caps Bedrock spend.
+- **Nobody can spam subscribers:** replay alerts from past storms only reach Telegram chats that opted in with `/demo`; the Telegram webhook checks a secret token.
+- **Silence is the failure that matters:** a CloudWatch alarm fires if the risk engine hasn't run for an hour.
+- **Photos are private** (S3 with public access blocked, deleted after 30 days); the AI call runs in a separate worker so a slow model can't time out the API.
+- **CI** runs the tests, checks the bundled replay data matches the code, lints the SAM template and builds the frontend on every push.
+
+## What it costs to run
+
+Rough monthly estimate at approximate AWS list prices; check them in the [AWS Pricing Calculator](https://calculator.aws/).
+
+| | Today (19 spots, pilot) | All of Delhi in a monsoon month |
+|---|---|---|
+| Assumptions | a few hundred users | 410 spots · 100k subscribers · ~6M API requests · 30k photo reports |
+| Lambda + EventBridge | free tier | ~$1 |
+| API Gateway | free tier | ~$8 |
+| DynamoDB (on-demand) | < $0.10 | ~$13 (falls to ~$2 with a 60 s CDN cache on `/spots`) |
+| Bedrock, Nova Pro (~$0.002 per photo) | < $0.10 | ~$60 (~$9 on Nova Lite) |
+| Telegram, Open-Meteo, Vercel | free | free (Open-Meteo has a paid tier for commercial use) |
+| **Total** | **≈ $0** | **≈ $80/month, about ₹7,000** (≈ $30 with Nova Lite and caching) |
 
 ## Run locally
 

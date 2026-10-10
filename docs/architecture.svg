@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .box{fill:#ffffff;stroke:#cbd5e1;stroke-width:1.5}
+      .aws{fill:#fff7ed;stroke:#f59e0b;stroke-width:1.5}
+      .ext{fill:#f1f5f9;stroke:#94a3b8;stroke-width:1.5}
+      .t{font-size:15px;font-weight:700;fill:#0f172a}
+      .s{font-size:12px;fill:#475569}
+      .l{font-size:11.5px;fill:#334155}
+      .line{stroke:#475569;stroke-width:1.6;fill:none;marker-end:url(#a)}
+      .dash{stroke-dasharray:5 4}
+    </style>
+  </defs>
+  <rect width="1000" height="560" fill="#ffffff"/>
+  <text x="24" y="34" font-size="20" font-weight="800" fill="#0f172a">GoNoGo on AWS</text>
+  <text x="24" y="54" class="s">Flood go/no-go alerts for Delhi underpasses · region ap-southeast-2 · deployed with AWS SAM</text>
+
+  <!-- AWS boundary -->
+  <rect x="230" y="78" width="560" height="400" rx="16" fill="#fffbf5" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="248" y="100" font-size="12" font-weight="700" fill="#b45309">AWS CLOUD</text>
+
+  <!-- People -->
+  <rect x="24" y="130" width="170" height="70" rx="12" class="ext"/>
+  <text x="40" y="158" class="t">Web app</text>
+  <text x="40" y="178" class="s">React + map, Hindi/English</text>
+
+  <rect x="24" y="250" width="170" height="70" rx="12" class="ext"/>
+  <text x="40" y="278" class="t">Citizen photo</text>
+  <text x="40" y="298" class="s">water next to a tyre/kerb</text>
+
+  <rect x="24" y="380" width="170" height="70" rx="12" class="ext"/>
+  <text x="40" y="408" class="t">Telegram</text>
+  <text x="40" y="428" class="s">alerts · /start /status /demo</text>
+
+  <!-- API -->
+  <rect x="260" y="200" width="160" height="70" rx="12" class="aws"/>
+  <text x="276" y="228" class="t">API Gateway</text>
+  <text x="276" y="248" class="s">HTTP API, throttled</text>
+
+  <rect x="460" y="200" width="150" height="70" rx="12" class="aws"/>
+  <text x="476" y="228" class="t">Lambda: API</text>
+  <text x="476" y="248" class="s">routes, rate limits</text>
+
+  <!-- Worker -->
+  <rect x="460" y="320" width="150" height="70" rx="12" class="aws"/>
+  <text x="476" y="348" class="t">Lambda: worker</text>
+  <text x="476" y="368" class="s">async photo check</text>
+
+  <rect x="640" y="320" width="130" height="70" rx="12" class="aws"/>
+  <text x="656" y="348" class="t">Bedrock</text>
+  <text x="656" y="368" class="s">Amazon Nova Pro</text>
+
+  <rect x="260" y="320" width="160" height="70" rx="12" class="aws"/>
+  <text x="276" y="348" class="t">S3</text>
+  <text x="276" y="368" class="s">photos, 30-day expiry</text>
+
+  <!-- Engine -->
+  <rect x="260" y="110" width="160" height="60" rx="12" class="aws"/>
+  <text x="276" y="136" class="t">EventBridge</text>
+  <text x="276" y="155" class="s">every 15 minutes</text>
+
+  <rect x="460" y="110" width="150" height="60" rx="12" class="aws"/>
+  <text x="476" y="136" class="t">Lambda: engine</text>
+  <text x="476" y="155" class="s">risk per spot</text>
+
+  <rect x="640" y="200" width="130" height="70" rx="12" class="aws"/>
+  <text x="656" y="228" class="t">DynamoDB</text>
+  <text x="656" y="248" class="s">status, subs, reports</text>
+
+  <rect x="640" y="410" width="130" height="50" rx="12" class="aws"/>
+  <text x="656" y="432" class="t">CloudWatch</text>
+  <text x="656" y="450" class="s">metrics, alarms</text>
+
+  <!-- External data -->
+  <rect x="820" y="100" width="160" height="70" rx="12" class="ext"/>
+  <text x="836" y="128" class="t">Open-Meteo</text>
+  <text x="836" y="148" class="s">rain: last 3 h + next 1 h</text>
+
+  <rect x="820" y="200" width="160" height="88" rx="12" class="ext"/>
+  <text x="836" y="228" class="t">Delhi PWD SOP</text>
+  <text x="836" y="248" class="s">6 in: start pumps</text>
+  <text x="836" y="266" class="s">8 in: stop traffic</text>
+
+  <!-- arrows -->
+  <path d="M194 165 C 230 165, 230 220, 258 225" class="line"/>
+  <path d="M194 285 C 230 285, 230 250, 258 248" class="line"/>
+  <path d="M420 235 L458 235" class="line"/>
+  <path d="M610 235 L638 235" class="line"/>
+  <path d="M520 270 L520 318" class="line dash"/><text x="527" y="300" class="l">async invoke</text>
+  <path d="M460 355 L422 355" class="line"/>
+  <path d="M610 355 L638 355" class="line"/>
+  <path d="M420 140 L458 140" class="line"/>
+  <path d="M610 140 L818 135" class="line"/>
+  <path d="M600 170 L670 198" class="line"/>
+  <path d="M470 392 C 420 445, 270 445, 198 428" class="line dash"/>
+  <text x="262" y="462" class="l">alerts when a spot gets worse (engine and worker)</text>
+  <path d="M198 392 C 238 392, 236 300, 272 274" class="line dash"/>
+  <text x="203" y="346" class="l">webhook</text>
+  <path d="M870 288 C 870 300, 760 300, 720 272" class="line dash"/>
+  <text x="818" y="318" class="l">levels follow</text>
+  <path d="M600 390 L650 410" class="line"/>
+
+  <!-- Legend -->
+  <rect x="24" y="500" width="14" height="14" rx="3" class="aws"/><text x="44" y="512" class="s">AWS service</text>
+  <rect x="140" y="500" width="14" height="14" rx="3" class="ext"/><text x="160" y="512" class="s">outside AWS</text>
+  <text x="270" y="512" class="s">Dashed: async / event-driven.  Local dev: sam local + DynamoDB Local.</text>
+</svg>
