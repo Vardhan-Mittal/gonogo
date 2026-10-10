@@ -22,7 +22,19 @@ export interface DepthReport {
   reference_object: string; explanation: string; time: string;
 }
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") || "http://localhost:8787";
+const CONFIGURED = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "");
+const BASE = CONFIGURED || (import.meta.env.DEV ? "http://localhost:8787" : "");
+
+/** No backend configured: serve spots and replays from bundled JSON (see backend/export_static.py). */
+export const OFFLINE = !BASE;
+
+async function staticJson<T>(file: string): Promise<T> {
+  const res = await fetch(`/static-data/${file}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as T;
+}
+
+const offlineError = () => Promise.reject(new Error("The live service is not connected yet. Storm replay still works."));
 
 async function call<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(BASE + path, {
@@ -34,7 +46,7 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export const api = {
+const online = {
   config: () => call<{ bot_username: string }>("/config"),
   spots: () => call<{ spots: Spot[]; statuses: Record<string, Status> }>("/spots"),
   storms: () => call<StormSummary[]>("/storms"),
@@ -44,6 +56,17 @@ export const api = {
   report: (spot: string, image: string, media_type: string) =>
     call<{ report: DepthReport; status: Status }>("/reports", { method: "POST", body: JSON.stringify({ spot, image, media_type }) }),
 };
+
+const offline: typeof online = {
+  config: () => Promise.resolve({ bot_username: "" }),
+  spots: () => staticJson("spots.json"),
+  storms: () => staticJson("storms.json"),
+  replay: (id) => staticJson(`replay-${id}.json`),
+  replayNotify: offlineError,
+  report: offlineError,
+};
+
+export const api = OFFLINE ? offline : online;
 
 /** Shrink a photo to at most 1280px on the long side and return base64 JPEG. */
 export async function resizeImage(file: File, max = 1280): Promise<string> {

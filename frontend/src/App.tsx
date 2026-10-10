@@ -2,13 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
-import { api, resizeImage } from "./api";
+import { api, OFFLINE, resizeImage } from "./api";
 import type { DepthReport, Level, Replay, Spot, Status, StormSummary } from "./api";
 import { STRINGS } from "./i18n";
 import type { Lang } from "./i18n";
 
-const COLOR: Record<Level, string> = { SAFE: "#1a9e55", RISKY: "#e8a317", NO_GO: "#d93025" };
+const COLOR: Record<Level, string> = { SAFE: "#16a34a", RISKY: "#f59e0b", NO_GO: "#dc2626" };
 const RANK: Record<Level, number> = { NO_GO: 0, RISKY: 1, SAFE: 2 };
+const ICON: Record<string, string> = { underpass: "🚇", tunnel: "🚇", road: "🛣️", junction: "🚦", basements: "🏢", street: "🏘️" };
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -26,10 +27,23 @@ function save(key: string, value: unknown) {
   }
 }
 
+function useDarkMode() {
+  const [dark, setDark] = useState(() => window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false);
+  useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!mq) return;
+    const on = (e: MediaQueryListEvent) => setDark(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return dark;
+}
+
 export default function App() {
   const [lang, setLang] = useState<Lang>(() => load("gonogo.lang", "en"));
   const t = STRINGS[lang];
-  const [mode, setMode] = useState<"live" | "replay">("live");
+  const dark = useDarkMode();
+  const [mode, setMode] = useState<"live" | "replay">(OFFLINE ? "replay" : "live");
   const [spots, setSpots] = useState<Spot[]>([]);
   const [live, setLive] = useState<Record<string, Status>>({});
   const [storms, setStorms] = useState<StormSummary[]>([]);
@@ -45,6 +59,7 @@ export default function App() {
 
   useEffect(() => save("gonogo.lang", lang), [lang]);
   useEffect(() => save("gonogo.route", route), [route]);
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
   const refreshLive = useCallback(() => {
     api.spots().then((r) => { setSpots(r.spots); setLive(r.statuses); setError(""); })
@@ -55,6 +70,7 @@ export default function App() {
     refreshLive();
     api.storms().then(setStorms).catch(() => {});
     api.config().then((c) => setBot(c.bot_username)).catch(() => {});
+    if (OFFLINE) return;
     const id = setInterval(refreshLive, 60_000);
     return () => clearInterval(id);
   }, [refreshLive]);
@@ -102,6 +118,8 @@ export default function App() {
     return c;
   }, [spots, statuses]);
 
+  const worst: Level = counts.NO_GO ? "NO_GO" : counts.RISKY ? "RISKY" : "SAFE";
+
   const toggleRoute = (id: string) =>
     setRoute((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
 
@@ -117,85 +135,118 @@ export default function App() {
 
   const name = (s: Spot) => (lang === "hi" ? s.name_hi : s.name);
   const cur = replay?.steps[step];
+  const stormTitle = (s: StormSummary) => (lang === "hi" ? s.title_hi : s.title);
+  const maxRain = replay ? Math.max(...replay.steps.map((s) => s.rain_mm), 1) : 1;
+  const showOffline = OFFLINE && mode === "live";
 
   return (
     <div className="app">
       <header className="top">
         <div className="brand">
-          <span className="logo" aria-hidden>⛔</span>
+          <div className="lights" aria-hidden>
+            <span style={{ background: COLOR.NO_GO }} /><span style={{ background: COLOR.RISKY }} /><span style={{ background: COLOR.SAFE }} />
+          </div>
           <div>
-            <h1>GoNoGo</h1>
+            <h1>Go<span>/</span>NoGo</h1>
             <p className="tagline">{t.tagline}</p>
           </div>
         </div>
-        <div className="lang" role="group" aria-label="Language">
+        <div className="seg" role="group" aria-label="Language">
           <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
           <button className={lang === "hi" ? "on" : ""} onClick={() => setLang("hi")}>हिं</button>
         </div>
       </header>
 
-      <nav className="tabs">
-        <button className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>● {t.live}</button>
-        <button className={mode === "replay" ? "on" : ""} onClick={() => setMode("replay")}>⏪ {t.replay}</button>
-      </nav>
+      <section className={`hero hero-${showOffline ? "OFF" : worst}`}>
+        <div className="hero-text">
+          <p className="eyebrow">
+            {mode === "live" ? `● ${t.rightNow}` : `⏪ ${t.replaying} · ${cur?.time.slice(0, 10) ?? ""} ${cur?.time.slice(11, 16) ?? ""}`}
+          </p>
+          <h2>{showOffline ? t.offline : spots.length ? t.headline(counts.NO_GO, counts.RISKY, spots.length) : "…"}</h2>
+          {!showOffline && <p className="hero-hint">{t.levelHint[worst]}</p>}
+        </div>
+        <div className="seg big" role="tablist">
+          <button role="tab" aria-selected={mode === "live"} className={mode === "live" ? "on" : ""} onClick={() => setMode("live")}>{t.live}</button>
+          <button role="tab" aria-selected={mode === "replay"} className={mode === "replay" ? "on" : ""} onClick={() => setMode("replay")}>{t.replay}</button>
+        </div>
+      </section>
 
-      {error && <div className="error">⚠ {error}</div>}
+      {error && !showOffline && <div className="error">⚠ {error}</div>}
+
+      {mode === "live" && (
+        <ol className="how">
+          {t.steps.map(([title, body], i) => (
+            <li key={title} className="card"><span className="num">{i + 1}</span><div><b>{title}</b><p>{body}</p></div></li>
+          ))}
+        </ol>
+      )}
 
       {mode === "replay" && (
         <section className="replay card">
-          <label className="row">
-            <span>{t.storm}</span>
-            <select value={stormId} onChange={(e) => setStormId(e.target.value)}>
-              {storms.map((s) => <option key={s.id} value={s.id}>{lang === "hi" ? s.title_hi : s.title}</option>)}
+          <div className="replay-head">
+            <select value={stormId} onChange={(e) => setStormId(e.target.value)} aria-label={t.storm}>
+              {storms.map((s) => <option key={s.id} value={s.id}>{stormTitle(s)}</option>)}
             </select>
-          </label>
+            {replay && (
+              <button className="play" onClick={() => {
+                if (!playing && step >= replay.steps.length - 1) setStep(0);
+                setPlaying((p) => !p);
+              }}>
+                {playing ? `❚❚ ${t.pause}` : `▶ ${t.play}`}
+              </button>
+            )}
+          </div>
           {replay && cur && (
             <>
-              <div className="clock">
-                <button className="play" onClick={() => {
-                  if (!playing && step >= replay.steps.length - 1) setStep(0);
-                  setPlaying((p) => !p);
+              <div className="bars" role="slider" aria-label="Replay time" aria-valuemin={0}
+                aria-valuemax={replay.steps.length - 1} aria-valuenow={step} tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight") setStep((s) => Math.min(s + 1, replay.steps.length - 1));
+                  if (e.key === "ArrowLeft") setStep((s) => Math.max(s - 1, 0));
                 }}>
-                  {playing ? `❚❚ ${t.pause}` : `▶ ${t.play}`}
-                </button>
-                <div className="time">
-                  <strong>{cur.time.slice(11, 16)}</strong>
-                  <span>{cur.time.slice(0, 10)}</span>
-                </div>
-                <div className="rainbar" title={`${cur.rain_mm} ${t.rainThisHour}`}>
-                  <div style={{ width: `${Math.min(100, (cur.rain_mm / 60) * 100)}%` }} />
-                  <span>🌧 {cur.rain_mm} {t.rainThisHour}</span>
-                </div>
+                {replay.steps.map((s, i) => (
+                  <button key={s.time} className={`bar ${i === step ? "now" : ""} ${i < step ? "past" : ""}`}
+                    onClick={() => { setPlaying(false); setStep(i); }} title={`${s.time.slice(11, 16)} · ${s.rain_mm} mm`}>
+                    <span className="fill" style={{ height: `${Math.max(4, (s.rain_mm / maxRain) * 100)}%` }} />
+                    <span className="lbl">{s.time.slice(11, 13)}</span>
+                  </button>
+                ))}
               </div>
-              <input type="range" min={0} max={replay.steps.length - 1} value={step}
-                onChange={(e) => { setPlaying(false); setStep(Number(e.target.value)); }} aria-label="Replay time" />
-              <label className="check">
-                <input type="checkbox" checked={sendAlerts} onChange={(e) => setSendAlerts(e.target.checked)} />
-                {t.sendReplayAlerts}
-              </label>
+              <div className="replay-foot">
+                <span className="muted">{t.hourlyRain}</span>
+                <span className="rainnow">🌧 <b>{cur.rain_mm}</b> {t.rainThisHour}</span>
+              </div>
               <div className="validation">
-                ✅ {t.validation(replay.validation.flagged, replay.validation.reported)}
+                <b>✅ {t.validation(replay.validation.flagged, replay.validation.reported)}</b>
                 {replay.validation.spots.map((v) => {
                   const sp = spots.find((s) => s.id === v.spot);
                   return (
                     <div key={v.spot} className="vrow">
                       {sp ? name(sp) : v.spot}: {t.firstNoGo} <b>{v.first_no_go?.slice(11, 16) ?? "-"}</b>{" "}
-                      <a href={v.source} target="_blank" rel="noreferrer">↗</a>
+                      <a href={v.source} target="_blank" rel="noreferrer">source ↗</a>
                     </div>
                   );
                 })}
               </div>
+              {!OFFLINE && (
+                <label className="check">
+                  <input type="checkbox" checked={sendAlerts} onChange={(e) => setSendAlerts(e.target.checked)} />
+                  {t.sendReplayAlerts}
+                </label>
+              )}
               <p className="note">{replay.storm.note}</p>
             </>
           )}
         </section>
       )}
 
-      <div className="summary">
+      <div className="legend">
         {(["NO_GO", "RISKY", "SAFE"] as Level[]).map((l) => (
-          <div key={l} className="pill" style={{ borderColor: COLOR[l] }}>
+          <div key={l} className="pill">
             <span className="dot" style={{ background: COLOR[l] }} />
-            <b>{counts[l]}</b> {t.level[l]}
+            <b>{counts[l]}</b>
+            <span>{t.level[l]}</span>
+            <small>{t.levelHint[l]}</small>
           </div>
         ))}
       </div>
@@ -203,15 +254,21 @@ export default function App() {
       <main className="layout">
         <div className="map card">
           <MapContainer center={[28.64, 77.2]} zoom={11} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
-            <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <TileLayer className={dark ? "tiles-dark" : "tiles-light"}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {spots.map((s) => {
               const lvl = statuses[s.id]?.level ?? "SAFE";
+              const mine = route.includes(s.id);
               return (
-                <CircleMarker key={s.id} center={[s.lat, s.lon]}
-                  radius={route.includes(s.id) ? 13 : 9}
-                  pathOptions={{ color: route.includes(s.id) ? "#1d3557" : "#fff", weight: route.includes(s.id) ? 3 : 2, fillColor: COLOR[lvl], fillOpacity: 0.95 }}
+                <CircleMarker key={`${s.id}-${lvl}`} center={[s.lat, s.lon]}
+                  radius={mine ? 13 : lvl === "SAFE" ? 8 : 11}
+                  pathOptions={{
+                    color: mine ? "#2563eb" : "#ffffff", weight: mine ? 4 : 2,
+                    fillColor: COLOR[lvl], fillOpacity: 0.95, className: lvl === "NO_GO" ? "pulse" : "",
+                  }}
                   eventHandlers={{ click: () => document.getElementById(`spot-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }) }}>
-                  <Tooltip>{name(s)}: {t.level[lvl]}</Tooltip>
+                  <Tooltip direction="top" offset={[0, -8]}><b>{name(s)}</b><br />{t.level[lvl]}</Tooltip>
                 </CircleMarker>
               );
             })}
@@ -220,10 +277,12 @@ export default function App() {
 
         <aside className="list">
           <div className="card routebox">
-            <h2>{t.myRoute}</h2>
-            <p>{t.pickHint}</p>
+            <div>
+              <h3>{t.myRoute} {route.length > 0 && <span className="count">{route.length}</span>}</h3>
+              <p>{t.pickHint}</p>
+            </div>
             {telegramLink ? (
-              <a className="tg" href={telegramLink} target="_blank" rel="noreferrer">✈ {t.getAlerts} ({route.length})</a>
+              <a className="tg" href={telegramLink} target="_blank" rel="noreferrer">✈ {t.getAlerts}</a>
             ) : (
               <button className="tg" disabled>✈ {t.getAlerts}</button>
             )}
@@ -233,39 +292,44 @@ export default function App() {
             const st = statuses[s.id];
             const lvl = st?.level ?? "SAFE";
             return (
-              <article key={s.id} id={`spot-${s.id}`} className="spot card" style={{ borderLeftColor: COLOR[lvl] }}>
+              <article key={s.id} id={`spot-${s.id}`} className={`spot card lvl-${lvl}`}>
                 <div className="spothead">
                   <label className="check">
                     <input type="checkbox" checked={route.includes(s.id)} onChange={() => toggleRoute(s.id)} aria-label={`${t.myRoute}: ${name(s)}`} />
-                    <h3>{name(s)}</h3>
+                    <span>
+                      <span className="spotname">{name(s)}</span>
+                      <span className="sub">{ICON[s.type] ?? "📍"} {t.type[s.type] ?? s.type}{s.perennial && <> · <em>{t.perennial}</em></>}</span>
+                    </span>
                   </label>
                   <span className="badge" style={{ background: COLOR[lvl] }}>{t.level[lvl]}</span>
                 </div>
-                {st ? (
-                  <p className="meta">
-                    {t.levelHint[lvl]} · 🌧 {st.rain_1h_mm} {t.rainLastHour} · {st.forecast_1h_mm} {t.rainNextHour}
-                    {st.report_depth_in != null && <> · 📷 ~{st.report_depth_in} {t.inches}</>}
-                  </p>
-                ) : (
-                  <p className="meta">{t.noData}</p>
+                {st && (
+                  <div className="stats">
+                    <div><b>{st.rain_1h_mm}</b><span>mm · {t.stat1h}</span></div>
+                    <div><b>{st.rain_3h_mm}</b><span>mm · {t.stat3h}</span></div>
+                    <div><b>{st.forecast_1h_mm}</b><span>mm · {t.statNext}</span></div>
+                    {st.report_depth_in != null && <div><b>~{st.report_depth_in}″</b><span>📷 {t.photo}</span></div>}
+                  </div>
                 )}
-                {s.incidents.length > 0 && (
-                  <details>
-                    <summary>{t.incidents} ({s.incidents.length})</summary>
-                    {s.incidents.map((i) => (
-                      <p key={i.date} className="incident">
-                        <b>{i.date}</b>: {i.text} <a href={i.url} target="_blank" rel="noreferrer">↗</a>
-                      </p>
-                    ))}
-                  </details>
-                )}
-                {mode === "live" && (
-                  <button className="report" onClick={() => setReportSpot(s)}>📷 {t.report}</button>
-                )}
+                <div className="actions">
+                  {s.incidents.length > 0 && (
+                    <details>
+                      <summary>{t.incidents} ({s.incidents.length})</summary>
+                      {s.incidents.map((i) => (
+                        <p key={i.date} className="incident">
+                          <b>{i.date}</b>: {i.text} <a href={i.url} target="_blank" rel="noreferrer">↗</a>
+                        </p>
+                      ))}
+                    </details>
+                  )}
+                  {mode === "live" && !OFFLINE && (
+                    <button className="report" onClick={() => setReportSpot(s)}>📷 {t.report}</button>
+                  )}
+                </div>
               </article>
             );
           })}
-          <p className="note">{t.never}</p>
+          <p className="note">⚠ {t.never}</p>
           <p className="note">{t.dataNote}</p>
         </aside>
       </main>
@@ -288,6 +352,12 @@ function ReportDialog({ spot, lang, onClose, onDone }: {
   const [status, setStatus] = useState<Status | null>(null);
   const [err, setErr] = useState("");
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const onFile = async (file?: File) => {
     if (!file) return;
     setErr(""); setResult(null); setBusy(true);
@@ -304,13 +374,13 @@ function ReportDialog({ spot, lang, onClose, onDone }: {
   };
 
   return (
-    <div className="modal" role="dialog" aria-modal="true" onClick={onClose}>
+    <div className="modal" role="dialog" aria-modal="true" aria-label={t.reportTitle} onClick={onClose}>
       <div className="card dialog" onClick={(e) => e.stopPropagation()}>
         <h2>{t.reportTitle}</h2>
         <p className="spotname">{lang === "hi" ? spot.name_hi : spot.name}</p>
         <p className="note">{t.reportHelp}</p>
         <label className="upload">
-          {t.choosePhoto}
+          📷 {t.choosePhoto}
           <input type="file" accept="image/*" capture="environment" onChange={(e) => onFile(e.target.files?.[0])} disabled={busy} />
         </label>
         {preview && <img src={preview} alt="" className="preview" />}

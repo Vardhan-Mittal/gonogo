@@ -39,6 +39,24 @@ const en = {
   incidents: "Past incidents",
   dataNote: "Rainfall: Open-Meteo forecast (live) and IMD observations (replay). Spots: Delhi PWD and traffic police hotspot lists.",
   never: "Never drive into standing water. 30 cm of moving water can float a car.",
+  rightNow: "Right now in Delhi",
+  replaying: "Replaying",
+  headline: (noGo: number, risky: number, total: number) =>
+    noGo > 0 ? `${noGo} of ${total} flood spots: do not enter`
+      : risky > 0 ? `${risky} of ${total} flood spots are risky`
+        : `All ${total} flood spots are safe to pass`,
+  offline: "Live service is connecting. Meanwhile, replay a real storm to see how GoNoGo warns people.",
+  steps: [
+    ["Pick your route", "Tick the underpasses you pass daily."],
+    ["Get warned early", "Telegram alert before the water rises, in Hindi or English."],
+    ["Report water", "Snap a photo; AI estimates depth and warns everyone."],
+  ] as [string, string][],
+  hourlyRain: "Hourly rain (mm). Tap a bar to jump.",
+  stat1h: "last hour",
+  statNext: "next hour",
+  stat3h: "last 3 h",
+  type: { underpass: "Underpass", tunnel: "Tunnel", road: "Road", junction: "Junction", basements: "Basements", street: "Street" } as Record<string, string>,
+  perennial: "Floods every year",
 };
 
 const hi: typeof en = {
@@ -78,6 +96,24 @@ const hi: typeof en = {
   incidents: "पिछले हादसे",
   dataNote: "बारिश: Open-Meteo पूर्वानुमान (लाइव) और IMD आंकड़े (रीप्ले)। जगहें: दिल्ली PWD और ट्रैफ़िक पुलिस की सूची।",
   never: "भरे पानी में कभी गाड़ी न डालें। 30 सेमी बहता पानी कार को बहा सकता है।",
+  rightNow: "दिल्ली में अभी",
+  replaying: "रीप्ले",
+  headline: (noGo, risky, total) =>
+    noGo > 0 ? `${total} में से ${noGo} जगहों पर प्रवेश न करें`
+      : risky > 0 ? `${total} में से ${risky} जगहों पर जोखिम`
+        : `सभी ${total} जगहें सुरक्षित हैं`,
+  offline: "लाइव सेवा जुड़ रही है। तब तक किसी असली बारिश का रीप्ले देखें।",
+  steps: [
+    ["रास्ता चुनें", "रोज़ जिन अंडरपास से गुज़रते हैं उन्हें चुनें।"],
+    ["पहले से चेतावनी", "पानी भरने से पहले Telegram पर अलर्ट, हिंदी या अंग्रेज़ी में।"],
+    ["पानी की रिपोर्ट", "फ़ोटो लें; AI गहराई बताकर सबको सचेत करेगा।"],
+  ],
+  hourlyRain: "हर घंटे की बारिश (मिमी)। किसी बार पर टैप करें।",
+  stat1h: "पिछला घंटा",
+  statNext: "अगला घंटा",
+  stat3h: "पिछले 3 घंटे",
+  type: { underpass: "अंडरपास", tunnel: "टनल", road: "सड़क", junction: "चौराहा", basements: "बेसमेंट", street: "गली" },
+  perennial: "हर साल पानी भरता है",
 };
 
 export const STRINGS = { en, hi };
