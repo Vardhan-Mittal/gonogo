@@ -44,6 +44,7 @@ Globals:
         TELEGRAM_WEBHOOK_SECRET: !Ref TelegramWebhookSecret
         BEDROCK_MODEL_ID: !Ref BedrockModelId
         BEDROCK_REGION: !Ref BedrockRegion
+        DYNAMODB_ENDPOINT_URL: ""  # set only for `sam local` (see local/env.json)
 
 Resources:
   Table:

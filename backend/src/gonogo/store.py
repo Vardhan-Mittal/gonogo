@@ -64,7 +64,9 @@ class DynamoStore(MemoryStore):
     def __init__(self, table_name):
         import boto3
 
-        self._table = boto3.resource("dynamodb").Table(table_name)
+        # DYNAMODB_ENDPOINT_URL points at DynamoDB Local when running under `sam local`.
+        endpoint = os.environ.get("DYNAMODB_ENDPOINT_URL") or None
+        self._table = boto3.resource("dynamodb", endpoint_url=endpoint).Table(table_name)
 
     def _put(self, pk, sk, data):
         self._table.put_item(Item={"pk": pk, "sk": sk, "data": json.dumps(data, ensure_ascii=False)})
