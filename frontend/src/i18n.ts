@@ -63,6 +63,19 @@ const en = {
   lead: (h: number) => (h > 0 ? `${h} h before peak` : h === 0 ? "at peak" : `${-h} h after peak`),
   gaugeOnly: "gauges only",
   seeReplay: "It's dry today. See how GoNoGo warned on 28 June 2024 →",
+  heroEyebrow: "Flood go/no-go · Delhi",
+  heroTitle: ["Know before", "you go."] as [string, string],
+  heroSub: "GoNoGo warns Delhi commuters before an underpass floods, on Telegram, in Hindi or English.",
+  ctaLive: "Open the live map",
+  ctaReplay: "Replay 28 June 2024",
+  navMap: "Live map",
+  navHow: "How it works",
+  navAws: "Built on AWS",
+  spotsTitle: "Delhi's flood spots",
+  spotsSub: "19 underpasses and roads that flood every monsoon, checked every 15 minutes.",
+  awsTitle: "Built on AWS",
+  awsSub: "Serverless end to end, deployed with AWS SAM.",
+  footer: "Rain: Open-Meteo (live), IMD (replays). Spots: Delhi PWD and traffic police. Map © OpenStreetMap.",
 };
 
 const hi: typeof en = {
@@ -126,6 +139,19 @@ const hi: typeof en = {
   lead: (h) => (h > 0 ? `चरम से ${h} घंटे पहले` : h === 0 ? "चरम पर" : `चरम के ${-h} घंटे बाद`),
   gaugeOnly: "सिर्फ़ गेज",
   seeReplay: "आज मौसम सूखा है। देखें 28 जून 2024 को GoNoGo ने कैसे चेताया →",
+  heroEyebrow: "बाढ़ चेतावनी · दिल्ली",
+  heroTitle: ["निकलने से", "पहले जानें।"],
+  heroSub: "अंडरपास में पानी भरने से पहले GoNoGo Telegram पर चेतावनी देता है, हिंदी या अंग्रेज़ी में।",
+  ctaLive: "लाइव मैप खोलें",
+  ctaReplay: "28 जून 2024 का रीप्ले",
+  navMap: "लाइव मैप",
+  navHow: "कैसे काम करता है",
+  navAws: "AWS पर बना",
+  spotsTitle: "दिल्ली की जलभराव वाली जगहें",
+  spotsSub: "19 अंडरपास और सड़कें जहां हर मानसून पानी भरता है, हर 15 मिनट में जांच।",
+  awsTitle: "AWS पर बना",
+  awsSub: "पूरी तरह सर्वरलेस, AWS SAM से डिप्लॉय।",
+  footer: "बारिश: Open-Meteo (लाइव), IMD (रीप्ले)। जगहें: दिल्ली PWD और ट्रैफ़िक पुलिस। मैप © OpenStreetMap।",
 };
 
 export const STRINGS = { en, hi };
