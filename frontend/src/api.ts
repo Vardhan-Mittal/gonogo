@@ -31,6 +31,15 @@ export interface Replay {
     spots: ValidationSpot[];
   };
 }
+export interface ValidationRow {
+  id: string; title: string; title_hi: string;
+  reported: number; flagged: number; flagged_gauge_only: number; peak_time: string;
+  spots: ValidationSpot[];
+}
+export interface ValidationSummary {
+  storms: number; reported: number; flagged: number; flagged_gauge_only: number;
+  flagged_before_peak: number; max_hours_before_peak: number; rows: ValidationRow[];
+}
 export interface DepthReport {
   usable: boolean; depth_inches: number; confidence: string;
   reference_object: string; explanation: string; time: string;
@@ -68,6 +77,7 @@ const online = {
   config: () => call<{ bot_username: string }>("/config"),
   spots: () => call<{ spots: Spot[]; statuses: Record<string, Status> }>("/spots"),
   storms: () => call<StormSummary[]>("/storms"),
+  validation: () => call<ValidationSummary>("/validation"),
   replay: (id: string) => call<Replay>(`/replay/${id}`),
   replayNotify: (id: string, step: number) =>
     call<{ worsened: string[]; sent: number }>(`/replay/${id}/notify`, { method: "POST", body: JSON.stringify({ step }) }),
@@ -89,6 +99,7 @@ const offline: typeof online = {
   config: () => Promise.resolve({ bot_username: "" }),
   spots: () => staticJson("spots.json"),
   storms: () => staticJson("storms.json"),
+  validation: () => staticJson("validation.json"),
   replay: (id) => staticJson(`replay-${id}.json`),
   replayNotify: offlineError,
   report: offlineError,

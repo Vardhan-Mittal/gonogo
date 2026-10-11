@@ -165,3 +165,10 @@ def test_photo_reports_are_rate_limited(store):
 def test_refresh_is_local_only(store, monkeypatch):
     monkeypatch.delenv("ALLOW_REFRESH", raising=False)
     assert handlers.route(store, "POST", "/refresh", dict)[0] == 404
+
+
+def test_validation_summary_counts_every_reported_flood(store):
+    code, v = handlers.route(store, "GET", "/validation", dict)
+    assert code == 200 and v["storms"] == len(data.storms())
+    assert v["reported"] == sum(len(s["reported_flooded"]) for s in data.storms())
+    assert v["flagged"] <= v["reported"] and v["flagged_before_peak"] <= v["flagged"]

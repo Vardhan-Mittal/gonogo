@@ -5,7 +5,21 @@
     "title_hi": "28 जून 2024: 88 साल में जून की सबसे भारी बारिश",
     "station": "IMD Safdarjung",
     "start": "2024-06-27T22:00",
-    "rain_mm_per_hour": [6.6, 2.0, 5.0, 12.0, 18.0, 45.0, 58.0, 45.5, 20.0, 10.0, 6.0, 2.0, 0.0],
+    "rain_mm_per_hour": [
+      6.6,
+      2.0,
+      5.0,
+      12.0,
+      18.0,
+      45.0,
+      58.0,
+      45.5,
+      20.0,
+      10.0,
+      6.0,
+      2.0,
+      0.0
+    ],
     "note": "Hourly shape at Safdarjung reconstructed from IMD's observed totals (228.1 mm in 24 h to 08:30; 148.5 mm between 02:30 and 05:30). Each spot is scaled by distance-weighted 24-hour totals from 10 IMD stations, so rain differs across the city. Gridded reanalysis (Open-Meteo/ERA5) shows only ~24 mm for this day, so observed figures are used.",
     "sources": [
       "https://scroll.in/latest/1069909/delhi-sees-highest-single-day-june-rainfall-in-88-years",
@@ -13,24 +27,161 @@
     ],
     "reference_mm": 228.1,
     "stations": [
-      {"name": "Safdarjung", "lat": 28.584, "lon": 77.206, "mm": 228.1},
-      {"name": "Lodhi Road", "lat": 28.589, "lon": 77.222, "mm": 192.8},
-      {"name": "Ridge", "lat": 28.680, "lon": 77.195, "mm": 150.4},
-      {"name": "Delhi University", "lat": 28.688, "lon": 77.210, "mm": 139.0},
-      {"name": "Pitampura", "lat": 28.703, "lon": 77.132, "mm": 138.0},
-      {"name": "Palam", "lat": 28.570, "lon": 77.112, "mm": 106.6},
-      {"name": "Pusa", "lat": 28.638, "lon": 77.160, "mm": 89.0},
-      {"name": "Mayur Vihar", "lat": 28.608, "lon": 77.296, "mm": 75.0},
-      {"name": "Tughlakabad", "lat": 28.500, "lon": 77.265, "mm": 70.5},
-      {"name": "Ayanagar", "lat": 28.477, "lon": 77.131, "mm": 66.3}
+      {
+        "name": "Safdarjung",
+        "lat": 28.584,
+        "lon": 77.206,
+        "mm": 228.1
+      },
+      {
+        "name": "Lodhi Road",
+        "lat": 28.589,
+        "lon": 77.222,
+        "mm": 192.8
+      },
+      {
+        "name": "Ridge",
+        "lat": 28.68,
+        "lon": 77.195,
+        "mm": 150.4
+      },
+      {
+        "name": "Delhi University",
+        "lat": 28.688,
+        "lon": 77.21,
+        "mm": 139.0
+      },
+      {
+        "name": "Pitampura",
+        "lat": 28.703,
+        "lon": 77.132,
+        "mm": 138.0
+      },
+      {
+        "name": "Palam",
+        "lat": 28.57,
+        "lon": 77.112,
+        "mm": 106.6
+      },
+      {
+        "name": "Pusa",
+        "lat": 28.638,
+        "lon": 77.16,
+        "mm": 89.0
+      },
+      {
+        "name": "Mayur Vihar",
+        "lat": 28.608,
+        "lon": 77.296,
+        "mm": 75.0
+      },
+      {
+        "name": "Tughlakabad",
+        "lat": 28.5,
+        "lon": 77.265,
+        "mm": 70.5
+      },
+      {
+        "name": "Ayanagar",
+        "lat": 28.477,
+        "lon": 77.131,
+        "mm": 66.3
+      }
     ],
     "stations_source": "https://www.businesstoday.in/amp/india/story/historic-delhi-records-second-highest-rainfall-in-43-years-reveals-imd-data-435102-2024-06-28",
     "reported_flooded": [
-      {"spot": "pragati", "source": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"},
-      {"spot": "minto", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
-      {"spot": "ito", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
-      {"spot": "dhaulakuan", "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"},
-      {"spot": "azadmkt", "source": "https://scroll.in/video/1069905/watch-roads-cave-in-cars-submerged-as-heavy-rain-triggers-severe-waterlogging-in-delhi-ncr"}
+      {
+        "spot": "pragati",
+        "source": "https://deccanherald.com/india/delhi/shut-after-june-28-rainfall-delhis-pragati-maidan-tunnel-reopens-3087735"
+      },
+      {
+        "spot": "minto",
+        "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"
+      },
+      {
+        "spot": "ito",
+        "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"
+      },
+      {
+        "spot": "dhaulakuan",
+        "source": "https://businesstoday.in/india/story/delhi-rains-heavy-waterlogging-traffic-jams-reported-across-parts-of-delhi-ncr-435022-2024-06-28"
+      },
+      {
+        "spot": "azadmkt",
+        "source": "https://scroll.in/video/1069905/watch-roads-cave-in-cars-submerged-as-heavy-rain-triggers-severe-waterlogging-in-delhi-ncr"
+      }
+    ]
+  },
+  {
+    "id": "2025-07-29",
+    "title": "29 July 2025: Zakhira under six feet of water",
+    "title_hi": "29 जुलाई 2025: ज़खीरा में छह फ़ीट पानी",
+    "station": "IMD Safdarjung",
+    "start": "2025-07-29T08:00",
+    "rain_mm_per_hour": [
+      8.0,
+      30.0,
+      20.0,
+      5.5,
+      2.0,
+      1.5,
+      1.1,
+      0.0
+    ],
+    "note": "Hourly shape approximated from IMD figures: 63.5 mm at Safdarjung between 08:30 and 11:30, 68.1 mm by 14:30. Rain was very uneven: Ridge, near Zakhira, recorded 129.5 mm. Each spot is scaled by distance-weighted totals from 6 IMD stations (Ayanagar is a morning-only reading).",
+    "sources": [
+      "https://www.theweek.in/wire-updates/national/2025/07/29/des26-dl-3rdld-weather.html",
+      "https://gulfnews.com/world/asia/india/heavy-rainfall-in-delhi-brings-widespread-waterlogging-traffic-chaos-2-1.500215063"
+    ],
+    "reference_mm": 68.1,
+    "stations": [
+      {
+        "name": "Safdarjung",
+        "lat": 28.584,
+        "lon": 77.206,
+        "mm": 68.1
+      },
+      {
+        "name": "Ridge",
+        "lat": 28.68,
+        "lon": 77.195,
+        "mm": 129.5
+      },
+      {
+        "name": "Lodhi Road",
+        "lat": 28.589,
+        "lon": 77.222,
+        "mm": 71.8
+      },
+      {
+        "name": "Pragati Maidan",
+        "lat": 28.6185,
+        "lon": 77.2459,
+        "mm": 45.5
+      },
+      {
+        "name": "Pusa",
+        "lat": 28.638,
+        "lon": 77.16,
+        "mm": 37.5
+      },
+      {
+        "name": "Ayanagar",
+        "lat": 28.477,
+        "lon": 77.131,
+        "mm": 23.0
+      }
+    ],
+    "stations_source": "https://www.theweek.in/wire-updates/national/2025/07/29/des26-dl-3rdld-weather.html",
+    "reported_flooded": [
+      {
+        "spot": "zakhira",
+        "source": "https://gulfnews.com/world/asia/india/heavy-rainfall-in-delhi-brings-widespread-waterlogging-traffic-chaos-2-1.500215063"
+      },
+      {
+        "spot": "minto",
+        "source": "https://www.theweek.in/wire-updates/national/2025/07/29/des26-dl-3rdld-weather.html"
+      }
     ]
   },
   {
@@ -39,7 +190,16 @@
     "title_hi": "31 जुलाई 2024: शाम की तेज़ बारिश, गाज़ीपुर हादसा",
     "station": "IMD Safdarjung",
     "start": "2024-07-31T16:00",
-    "rain_mm_per_hour": [0.0, 3.0, 27.0, 41.0, 24.0, 7.6, 3.0, 0.0],
+    "rain_mm_per_hour": [
+      0.0,
+      3.0,
+      27.0,
+      41.0,
+      24.0,
+      7.6,
+      3.0,
+      0.0
+    ],
     "note": "Hourly shape approximated (East Delhi saw 119 mm in three hours that evening); 24-hour totals from IMD stations: Safdarjung 105.6, Lodhi Road 107.5, Delhi University 104.5, Najafgarh 113, Mayur Vihar 147.5 mm. Each spot is scaled by distance-weighted station totals.",
     "sources": [
       "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464",
@@ -47,16 +207,114 @@
     ],
     "reference_mm": 105.6,
     "stations": [
-      {"name": "Safdarjung", "lat": 28.584, "lon": 77.206, "mm": 105.6},
-      {"name": "Lodhi Road", "lat": 28.589, "lon": 77.222, "mm": 107.5},
-      {"name": "Delhi University", "lat": 28.688, "lon": 77.210, "mm": 104.5},
-      {"name": "Najafgarh", "lat": 28.609, "lon": 76.985, "mm": 113.0},
-      {"name": "Mayur Vihar", "lat": 28.608, "lon": 77.296, "mm": 147.5}
+      {
+        "name": "Safdarjung",
+        "lat": 28.584,
+        "lon": 77.206,
+        "mm": 105.6
+      },
+      {
+        "name": "Lodhi Road",
+        "lat": 28.589,
+        "lon": 77.222,
+        "mm": 107.5
+      },
+      {
+        "name": "Delhi University",
+        "lat": 28.688,
+        "lon": 77.21,
+        "mm": 104.5
+      },
+      {
+        "name": "Najafgarh",
+        "lat": 28.609,
+        "lon": 76.985,
+        "mm": 113.0
+      },
+      {
+        "name": "Mayur Vihar",
+        "lat": 28.608,
+        "lon": 77.296,
+        "mm": 147.5
+      }
     ],
     "stations_source": "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464",
     "reported_flooded": [
-      {"spot": "ghazipur", "source": "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"},
-      {"spot": "pragati", "source": "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464"}
+      {
+        "spot": "ghazipur",
+        "source": "https://www.nationalheraldindia.com/national/heavy-rain-brings-delhi-to-its-knees-2-drown-in-ghazipur-schools-closed"
+      },
+      {
+        "spot": "pragati",
+        "source": "https://www.deccanherald.com/amp/story/india%2Fdelhi%2Fheavy-rain-lashes-delhi-resulting-in-waterlogging-traffic-disruptions-3131464"
+      }
+    ]
+  },
+  {
+    "id": "2023-07-08",
+    "title": "8 July 2023: heaviest July day since 1982",
+    "title_hi": "8 जुलाई 2023: 1982 के बाद जुलाई की सबसे भारी बारिश",
+    "station": "IMD Safdarjung",
+    "start": "2023-07-08T08:00",
+    "rain_mm_per_hour": [
+      4.0,
+      12.0,
+      22.0,
+      28.0,
+      20.0,
+      14.0,
+      10.0,
+      7.0,
+      5.0,
+      4.1,
+      6.0,
+      8.0,
+      6.0,
+      4.0,
+      2.9,
+      0.0
+    ],
+    "note": "Hourly shape approximated: most of the 153 mm (24 h to 08:30 on 9 July, Safdarjung) fell during the day (126.1 mm between 08:30 and 17:30 as reported). Each spot is scaled by distance-weighted 24-hour totals from 4 IMD stations.",
+    "sources": [
+      "https://www.tribuneindia.com/news/delhi/delhi-records-highest-single-day-rainfall-for-july-since-1982-imd-524160"
+    ],
+    "reference_mm": 153.0,
+    "stations": [
+      {
+        "name": "Safdarjung",
+        "lat": 28.584,
+        "lon": 77.206,
+        "mm": 153.0
+      },
+      {
+        "name": "Ridge",
+        "lat": 28.68,
+        "lon": 77.195,
+        "mm": 134.5
+      },
+      {
+        "name": "Lodhi Road",
+        "lat": 28.589,
+        "lon": 77.222,
+        "mm": 123.4
+      },
+      {
+        "name": "Delhi University",
+        "lat": 28.688,
+        "lon": 77.21,
+        "mm": 118.0
+      }
+    ],
+    "stations_source": "https://www.tribuneindia.com/news/delhi/delhi-records-highest-single-day-rainfall-for-july-since-1982-imd-524160",
+    "reported_flooded": [
+      {
+        "spot": "minto",
+        "source": "https://gulfnews.com/amp/world/asia/india/india-waterlogging-traffic-congestion-in-delhi-after-heavy-downpour-1.96853127"
+      },
+      {
+        "spot": "pragati",
+        "source": "https://www.deccanherald.com/amp/story/india%2Fdelhis-pragati-maidan-tunnel-closed-due-to-waterlogging-1235347"
+      }
     ]
   },
   {
@@ -65,13 +323,24 @@
     "title_hi": "19 जुलाई 2020: मिंटो ब्रिज हादसा",
     "station": "IMD Safdarjung",
     "start": "2020-07-19T03:00",
-    "rain_mm_per_hour": [0.0, 5.0, 22.0, 30.0, 12.0, 5.8, 0.0],
+    "rain_mm_per_hour": [
+      0.0,
+      5.0,
+      22.0,
+      30.0,
+      12.0,
+      5.8,
+      0.0
+    ],
     "note": "Hourly shape approximated; total of 74.8 mm by 08:30 at Safdarjung from IMD as reported. No station-wise totals found, so the same rain is applied city-wide.",
     "sources": [
       "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"
     ],
     "reported_flooded": [
-      {"spot": "minto", "source": "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"}
+      {
+        "spot": "minto",
+        "source": "https://scroll.in/latest/967932/delhi-one-die-as-heavy-rain-hits-capital-traffic-jams-power-outages-in-several-places"
+      }
     ]
   }
 ]

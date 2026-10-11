@@ -198,6 +198,8 @@ def route(store, method, path, body_fn, headers=None):
         return 200, get_spots(store)
     if method == "GET" and parts == ["storms"]:
         return 200, list_storms()
+    if method == "GET" and parts == ["validation"]:
+        return 200, data.validation_summary()
     if method == "GET" and len(parts) == 2 and parts[0] == "replay":
         rp = data.replay(parts[1])
         return (200, rp) if rp else (404, {"error": "unknown storm"})

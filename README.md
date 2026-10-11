@@ -94,8 +94,13 @@ Each storm is replayed hour by hour. Every spot's rain is scaled from the storm'
 | Storm | Spots reported flooded in the news | Flagged "Do not enter" (with forecast) | Flagged (gauges only) |
 |---|---|---|---|
 | 28 Jun 2024 | Pragati Maidan tunnel, Minto Bridge, ITO, Dhaula Kuan, Azad Market | 5 of 5: four of them 1–2 h before the heaviest hour; ITO 1 h after | 5 of 5 |
+| 29 Jul 2025 | Zakhira (≈6 ft of water), Minto Bridge | 2 of 2, 1 h before the heaviest hour | 2 of 2 |
 | 31 Jul 2024 | Ghazipur, Pragati Maidan (Bharat Mandapam) | 2 of 2, 1 h before the heaviest hour | 2 of 2, at the heaviest hour |
+| 8 Jul 2023 | Minto Bridge (closed), Pragati Maidan tunnel (closed) | 2 of 2: Minto 1 h before; the tunnel 1 h after | 2 of 2 |
 | 19 Jul 2020 | Minto Bridge (driver drowned) | 1 of 1, 2 h before the heaviest hour | 1 of 1, 1 h before |
+| **Total** | **12 reported floods, 5 storms** | **12 of 12** (10 before the heaviest hour) | **12 of 12** |
+
+The flood limits were set before the 2023 and 2025 storms were added, so those two are an out-of-sample check. The site's **How we know** section shows the same table with links to every source.
 
 What this does **not** show: news reports don't give the minute each spot flooded, so lead time is measured against the hour of heaviest rain, and spots the news didn't mention can't be scored as false alarms.
 

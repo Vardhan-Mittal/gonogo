@@ -131,3 +131,22 @@ def validate(st, steps):
         "total_spots": total_spots,
         "spots": results,
     }
+
+
+@lru_cache(maxsize=None)
+def validation_summary():
+    """All storms' validation in one place, for the proof band and methods page."""
+    rows, leads = [], []
+    for st in storms():
+        v = replay(st["id"])["validation"]
+        rows.append({"id": st["id"], "title": st["title"], "title_hi": st["title_hi"], **v})
+        leads += [s["hours_before_peak"] for s in v["spots"] if s["hours_before_peak"] is not None]
+    return {
+        "storms": len(rows),
+        "reported": sum(r["reported"] for r in rows),
+        "flagged": sum(r["flagged"] for r in rows),
+        "flagged_gauge_only": sum(r["flagged_gauge_only"] for r in rows),
+        "flagged_before_peak": sum(1 for h in leads if h > 0),
+        "max_hours_before_peak": max(leads, default=0),
+        "rows": rows,
+    }

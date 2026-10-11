@@ -24,6 +24,7 @@ if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     write("spots.json", {"spots": data.spots(), "statuses": {}})
     write("storms.json", list_storms())
+    write("validation.json", data.validation_summary())
     for st in data.storms():
         write(f"replay-{st['id']}.json", data.replay(st["id"]))
     print(f"wrote static data to {OUT}")

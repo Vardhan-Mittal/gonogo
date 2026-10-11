@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 
 import { api, OFFLINE, resizeImage } from "./api";
-import type { DepthReport, Level, Replay, Spot, Status, StormSummary } from "./api";
+import type { DepthReport, Level, Replay, Spot, Status, StormSummary, ValidationSummary } from "./api";
+import { Methodology, ProofBand } from "./Methodology";
 import { STRINGS } from "./i18n";
 import type { Lang } from "./i18n";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ export default function App() {
   const [useForecast, setUseForecast] = useState(true);
   const [route, setRoute] = useState<string[]>(() => load("gonogo.route", []));
   const [bot, setBot] = useState("");
+  const [validation, setValidation] = useState<ValidationSummary | null>(null);
   const [reportSpot, setReportSpot] = useState<Spot | null>(null);
   const [error, setError] = useState("");
   const heroRef = useRef<HTMLElement>(null);
@@ -82,6 +84,7 @@ export default function App() {
   useEffect(() => {
     refreshLive();
     api.storms().then(setStorms).catch(() => {});
+    api.validation().then(setValidation).catch(() => {});
     api.config().then((c) => setBot(c.bot_username)).catch(() => {});
     if (OFFLINE) return;
     const id = setInterval(refreshLive, 60_000);
@@ -183,6 +186,7 @@ export default function App() {
           </a>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#map" className="hover:text-foreground">{t.navMap}</a>
+            <a href="#method" className="hover:text-foreground">{t.navMethod}</a>
             <a href="#how" className="hover:text-foreground">{t.navHow}</a>
             <a href="#aws" className="hover:text-foreground">{t.navAws}</a>
           </nav>
@@ -236,6 +240,8 @@ export default function App() {
         </div>
 
       </section>
+
+      <ProofBand lang={lang} v={validation} spotCount={spots.length} />
 
       {/* ---------- Map + spots ---------- */}
       <section id="map" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-20">
@@ -488,6 +494,8 @@ export default function App() {
           ))}
         </div>
       </section>
+
+      <Methodology lang={lang} v={validation} spots={spots} />
 
       {/* ---------- Built on AWS ---------- */}
       <section id="aws" className="mx-auto max-w-6xl scroll-mt-16 px-4 pb-20">
