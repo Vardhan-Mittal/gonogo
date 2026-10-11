@@ -43,11 +43,14 @@ function save(key: string, value: unknown) {
 export default function App() {
   const [lang, setLang] = useState<Lang>(() => load("gonogo.lang", "en"));
   const t = STRINGS[lang];
-  const [mode, setMode] = useState<"live" | "replay">(OFFLINE ? "replay" : "live");
+  // Shareable replay links: ?replay=2024-06-28&step=5&focus=map
+  const linkParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const linkApplied = useRef(false);
+  const [mode, setMode] = useState<"live" | "replay">(linkParams.get("replay") || OFFLINE ? "replay" : "live");
   const [spots, setSpots] = useState<Spot[]>([]);
   const [live, setLive] = useState<Record<string, Status>>({});
   const [storms, setStorms] = useState<StormSummary[]>([]);
-  const [stormId, setStormId] = useState("2024-06-28");
+  const [stormId, setStormId] = useState(linkParams.get("replay") || "2024-06-28");
   const [replay, setReplay] = useState<Replay | null>(null);
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -89,7 +92,15 @@ export default function App() {
     if (mode !== "replay") return;
     setPlaying(false);
     setStep(0);
-    api.replay(stormId).then(setReplay).catch((e) => setError(String(e.message || e)));
+    api.replay(stormId).then((r) => {
+      setReplay(r);
+      if (linkApplied.current) return;
+      linkApplied.current = true;
+      const linkStep = Number(linkParams.get("step"));
+      if (linkStep > 0) setStep(Math.min(linkStep, r.steps.length - 1));
+      const focus = linkParams.get("focus");
+      if (focus) setTimeout(() => document.getElementById(focus)?.scrollIntoView({ behavior: "instant" }), 600);
+    }).catch((e) => setError(String(e.message || e)));
   }, [mode, stormId]);
 
   useEffect(() => {
@@ -360,7 +371,7 @@ export default function App() {
 
         {/* Map + list */}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <Card className="h-[62vh] min-h-[420px] overflow-hidden py-0 lg:sticky lg:top-20 lg:h-[72vh]">
+          <Card id="map-card" className="h-[62vh] min-h-[420px] scroll-mt-20 overflow-hidden py-0 lg:sticky lg:top-20 lg:h-[72vh]">
             <MapContainer center={[28.64, 77.2]} zoom={11} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
               <TileLayer
                 attribution='Tiles &copy; Esri · Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
