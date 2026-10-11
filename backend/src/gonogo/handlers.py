@@ -214,6 +214,11 @@ def route(store, method, path, body_fn, headers=None):
     headers = {k.lower(): v for k, v in (headers or {}).items()}
     parts = [p for p in path.split("/") if p]
 
+    if method == "OPTIONS":
+        # CORS preflight: the catch-all route sends it here; API Gateway adds
+        # the CORS headers, it just needs a 2xx so the browser proceeds.
+        return 200, {}
+
     if method == "GET" and parts == ["health"]:
         return 200, {"ok": True}
     if method == "GET" and parts == ["config"]:

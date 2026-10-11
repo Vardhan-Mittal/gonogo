@@ -197,3 +197,8 @@ def test_email_subject_is_ascii_and_short():
     from gonogo import email_alerts
     subj = email_alerts.subject(data.spot("minto"), {"level": "NO_GO"}, replay_label="x")
     assert subj.isascii() and len(subj) < 100 and "DO NOT ENTER" in subj
+
+
+def test_cors_preflight_succeeds_on_every_route(store):
+    for path in ("/subscribe-email", "/reports", "/replay/2024-06-28/notify", "/anything"):
+        assert handlers.route(store, "OPTIONS", path, dict)[0] == 200
