@@ -27,7 +27,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 
 - **Safe / Risky / Do not enter** for 19 known Delhi flood spots, updated every 15 minutes from rainfall in the last hour, the last 3 hours and the next hour.
 - Levels follow **Delhi PWD's own underpass procedure**: start pumps at 6–8 inches of water, stop traffic above 8 inches.
-- **Telegram alerts in Hindi or English** for the spots on your daily route, sent when a spot gets worse.
+- **Alerts in Hindi or English** for the spots on your daily route, sent when a spot gets worse: on **Telegram**, or by **email through Amazon SNS** (each subscription is filtered to the person's spots and language).
 - **Citizen photo reports:** Amazon Nova Pro on Amazon Bedrock estimates water depth against a car tyre, kerb or person, and the spot updates immediately.
 - **Storm replay** of real Delhi storms (28 Jun 2024, 31 Jul 2024, 19 Jul 2020), checked against flooding the news reported.
 
@@ -40,6 +40,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 | Amazon EventBridge Scheduler | Runs the risk engine every 15 minutes |
 | Amazon DynamoDB | Live status, subscribers, photo reports |
 | Amazon S3 | Citizen photos (private, 30-day expiry) |
+| Amazon SNS | Email alerts: one topic, per-subscriber filter policies on spot, language and live/replay |
 | Amazon S3 + CloudFront | The website itself: private bucket, HTTPS, global CDN |
 | Amazon CloudWatch | GoNoGo dashboard, custom metrics (spots by level, alerts sent, photo reports), alarms if the engine stops running or Lambdas error |
 | Amazon Bedrock (Amazon Nova Pro) | Water-depth estimate from photos (a Claude path via the Anthropic SDK is built in for accounts with Anthropic models enabled) |

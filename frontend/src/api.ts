@@ -78,6 +78,8 @@ const online = {
   spots: () => call<{ spots: Spot[]; statuses: Record<string, Status> }>("/spots"),
   storms: () => call<StormSummary[]>("/storms"),
   validation: () => call<ValidationSummary>("/validation"),
+  subscribeEmail: (email: string, spots: string[], lang: string, replay: boolean) =>
+    call<{ ok: boolean; spots: string[] }>("/subscribe-email", { method: "POST", body: JSON.stringify({ email, spots, lang, replay }) }),
   replay: (id: string) => call<Replay>(`/replay/${id}`),
   replayNotify: (id: string, step: number) =>
     call<{ worsened: string[]; sent: number }>(`/replay/${id}/notify`, { method: "POST", body: JSON.stringify({ step }) }),
@@ -100,6 +102,7 @@ const offline: typeof online = {
   spots: () => staticJson("spots.json"),
   storms: () => staticJson("storms.json"),
   validation: () => staticJson("validation.json"),
+  subscribeEmail: offlineError,
   replay: (id) => staticJson(`replay-${id}.json`),
   replayNotify: offlineError,
   report: offlineError,

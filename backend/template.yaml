@@ -52,8 +52,15 @@ Globals:
         BEDROCK_CONVERSE_MODEL_ID: !Ref BedrockConverseModelId
         DYNAMODB_ENDPOINT_URL: ""  # set only for `sam local` (see local/env.json)
         ALLOW_REFRESH: ""  # "1" only locally; EventBridge runs the engine on AWS
+        ALERT_TOPIC_ARN: !Ref AlertTopic
 
 Resources:
+  # Email alerts: one topic, per-subscriber filter policies (spot, lang, kind).
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: GoNoGo flood alerts
+
   Table:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -99,6 +106,11 @@ Resources:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
         - S3WritePolicy: { BucketName: !Ref PhotoBucket }
         - LambdaInvokePolicy: { FunctionName: !Ref ReportWorkerFunction }
+        - SNSPublishMessagePolicy: { TopicName: !GetAtt AlertTopic.TopicName }
+        - Statement:
+            - Effect: Allow
+              Action: sns:Subscribe
+              Resource: !Ref AlertTopic
       Events:
         Api:
           Type: HttpApi
@@ -116,6 +128,7 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
         - S3ReadPolicy: { BucketName: !Ref PhotoBucket }
+        - SNSPublishMessagePolicy: { TopicName: !GetAtt AlertTopic.TopicName }
         - Statement:
             - Effect: Allow
               Action:
@@ -130,6 +143,7 @@ Resources:
       Handler: gonogo.handlers.engine_handler
       Policies:
         - DynamoDBCrudPolicy: { TableName: !Ref Table }
+        - SNSPublishMessagePolicy: { TopicName: !GetAtt AlertTopic.TopicName }
       Events:
         Every15Minutes:
           Type: ScheduleV2
@@ -280,6 +294,8 @@ Outputs:
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   TableName:
     Value: !Ref Table
+  AlertTopicArn:
+    Value: !Ref AlertTopic
   WebUrl:
     Value: !Sub "https://${WebDistribution.DomainName}"
   WebBucketName:

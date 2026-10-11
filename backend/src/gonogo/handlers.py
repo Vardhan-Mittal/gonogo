@@ -158,6 +158,30 @@ def process_report(store, task, estimate=None, load_photo=None):
     store.put_job({**job, "state": "done", "report": report, "status": status})
 
 
+EMAIL_SUBSCRIBES_PER_HOUR = 60
+
+
+def subscribe_email(store, body, subscribe=None):
+    """POST /subscribe-email {email, spots, lang, replay}."""
+    from . import email_alerts
+
+    email = str(body.get("email", "")).strip()
+    spot_ids = [s for s in body.get("spots", []) if isinstance(s, str) and data.spot(s)][:email_alerts.MAX_SPOTS]
+    lang = body.get("lang") if body.get("lang") in ("en", "hi") else "en"
+    if not email_alerts.EMAIL_RE.match(email):
+        return 400, {"error": "Please enter a valid email address."}
+    if not spot_ids:
+        return 400, {"error": "Tick at least one spot on the map first."}
+    if subscribe is None:
+        if not email_alerts.topic_arn():
+            return 503, {"error": "Email alerts aren't configured."}
+        subscribe = email_alerts.subscribe
+    if not store.take_hourly_slot("email-subscribe", int(time.time()), EMAIL_SUBSCRIBES_PER_HOUR):
+        return 429, {"error": "Too many sign-ups right now. Please try again later."}
+    subscribe(email, spot_ids, lang, bool(body.get("replay")))
+    return 200, {"ok": True, "spots": spot_ids, "lang": lang}
+
+
 def _save_photo_s3(spot_id, ts, image_b64, media_type):
     import boto3
 
@@ -210,6 +234,8 @@ def route(store, method, path, body_fn, headers=None):
         on_aws = bool(os.environ.get("REPORT_WORKER_FUNCTION"))
         return submit_report(store, body_fn(), save_photo=_save_photo_s3 if on_aws else None,
                              dispatch=_dispatch_lambda if on_aws else None)
+    if method == "POST" and parts == ["subscribe-email"]:
+        return subscribe_email(store, body_fn())
     if method == "GET" and len(parts) == 2 and parts[0] == "reports":
         job = store.get_job(parts[1])
         return (200, job) if job else (404, {"error": "unknown report"})

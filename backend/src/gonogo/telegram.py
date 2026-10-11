@@ -81,6 +81,11 @@ def notify_change(store, spot_id, status, replay_label=None):
                 sent += 1
             except Exception as exc:  # one bad chat must not stop the rest
                 print(f"telegram send failed for {sub['chat_id']}: {exc}")
+    try:  # email subscribers via Amazon SNS (filtered by spot, language, kind)
+        from . import email_alerts
+        sent += email_alerts.publish(spot_id, status, replay_label)
+    except Exception as exc:
+        print(f"email alert publish failed for {spot_id}: {exc}")
     return sent
 
 

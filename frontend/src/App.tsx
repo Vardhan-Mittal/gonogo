@@ -8,6 +8,7 @@ import {
 import { api, OFFLINE, resizeImage } from "./api";
 import type { DepthReport, Level, Replay, Spot, Status, StormSummary, ValidationSummary } from "./api";
 import { Methodology, ProofBand } from "./Methodology";
+import { Alerts } from "./Alerts";
 import { STRINGS } from "./i18n";
 import type { Lang } from "./i18n";
 import { Badge } from "@/components/ui/badge";
@@ -186,6 +187,7 @@ export default function App() {
           </a>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#map" className="hover:text-foreground">{t.navMap}</a>
+            <a href="#alerts" className="hover:text-foreground">{t.navAlerts}</a>
             <a href="#method" className="hover:text-foreground">{t.navMethod}</a>
             <a href="#how" className="hover:text-foreground">{t.navHow}</a>
             <a href="#aws" className="hover:text-foreground">{t.navAws}</a>
@@ -200,7 +202,7 @@ export default function App() {
               ))}
             </div>
             <Button asChild size="sm" className="hidden rounded-full sm:inline-flex">
-              <a href="#route"><Bell /> {t.getAlerts}</a>
+              <a href="#alerts"><Bell /> {t.getAlerts}</a>
             </Button>
           </div>
         </div>
@@ -478,6 +480,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      <Alerts lang={lang} spots={spots} route={route} telegramLink={telegramLink} />
 
       {/* ---------- How it works ---------- */}
       <section id="how" className="mx-auto max-w-6xl scroll-mt-16 px-4 pb-20">

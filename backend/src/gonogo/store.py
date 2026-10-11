@@ -68,6 +68,15 @@ class MemoryStore:
         self._put("RATE", f"spot#{spot_id}", {"epoch": now})
         return None
 
+    def take_hourly_slot(self, name, now, per_hour):
+        """Simple global hourly cap for an action. True if allowed."""
+        hour = time.strftime("%Y%m%d%H", time.gmtime(now))
+        count = (self._get("RATE", f"{name}#{hour}") or {}).get("count", 0)
+        if count >= per_hour:
+            return False
+        self._put("RATE", f"{name}#{hour}", {"count": count + 1})
+        return True
+
     def put_job(self, job):
         self._put("JOB", job["id"], job)
 

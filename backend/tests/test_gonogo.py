@@ -172,3 +172,28 @@ def test_validation_summary_counts_every_reported_flood(store):
     assert code == 200 and v["storms"] == len(data.storms())
     assert v["reported"] == sum(len(s["reported_flooded"]) for s in data.storms())
     assert v["flagged"] <= v["reported"] and v["flagged_before_peak"] <= v["flagged"]
+
+
+def test_email_subscribe_validates_and_rate_limits(store, monkeypatch):
+    calls = []
+    fake = lambda email, spots, lang, replay: calls.append((email, spots, lang, replay))
+    bad = handlers.subscribe_email(store, {"email": "nope", "spots": ["minto"]}, subscribe=fake)
+    assert bad[0] == 400
+    none = handlers.subscribe_email(store, {"email": "a@b.co", "spots": ["bogus"]}, subscribe=fake)
+    assert none[0] == 400
+    ok = handlers.subscribe_email(store, {"email": "a@b.co", "spots": ["minto", "bogus", "ito"], "lang": "hi", "replay": True}, subscribe=fake)
+    assert ok[0] == 200 and calls == [("a@b.co", ["minto", "ito"], "hi", True)]
+    monkeypatch.setattr(handlers, "EMAIL_SUBSCRIBES_PER_HOUR", 1)
+    assert handlers.subscribe_email(store, {"email": "c@d.co", "spots": ["minto"]}, subscribe=fake)[0] == 429
+
+
+def test_email_publish_is_skipped_without_topic(monkeypatch):
+    from gonogo import email_alerts
+    monkeypatch.delenv("ALERT_TOPIC_ARN", raising=False)
+    assert email_alerts.publish("minto", risk.assess(data.spot("minto"), 30, 30)) == 0
+
+
+def test_email_subject_is_ascii_and_short():
+    from gonogo import email_alerts
+    subj = email_alerts.subject(data.spot("minto"), {"level": "NO_GO"}, replay_label="x")
+    assert subj.isascii() and len(subj) < 100 and "DO NOT ENTER" in subj
