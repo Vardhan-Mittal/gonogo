@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
-  ArrowRight, Bell, Camera, CloudRain, GitBranch, History, Loader2, MapPin, Pause, Play, Radio, Send, ShieldCheck,
+  ArrowRight, Bell, Camera, Mail, CloudRain, GitBranch, History, Loader2, MapPin, Pause, Play, Radio, Send, ShieldCheck,
 } from "lucide-react";
 
 import { api, OFFLINE, resizeImage } from "./api";
@@ -202,7 +202,7 @@ export default function App() {
               ))}
             </div>
             <Button asChild size="sm" className="hidden rounded-full sm:inline-flex">
-              <a href="#alerts"><Bell /> {t.getAlerts}</a>
+              <a href="#alerts"><Bell /> {t.navGetAlerts}</a>
             </Button>
           </div>
         </div>
@@ -420,6 +420,9 @@ export default function App() {
                 ) : (
                   <Button disabled className="w-full rounded-full"><Send /> {t.getAlerts}</Button>
                 )}
+                <a href="#alerts" className="mt-3 flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+                  <Mail className="size-4" /> {t.preferEmail} ↓
+                </a>
               </CardContent>
             </Card>
 

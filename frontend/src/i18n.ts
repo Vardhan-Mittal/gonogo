@@ -113,6 +113,8 @@ const en = {
     ],
   },
   navAlerts: "Alerts",
+  navGetAlerts: "Get alerts",
+  preferEmail: "Prefer email? Get email alerts",
   alerts: {
     eyebrow: "Alerts",
     title: "Hear it before you leave, not after you're stuck.",
@@ -247,6 +249,8 @@ const hi: typeof en = {
     ],
   },
   navAlerts: "अलर्ट",
+  navGetAlerts: "अलर्ट पाएं",
+  preferEmail: "ईमेल चाहिए? ईमेल अलर्ट पाएं",
   alerts: {
     eyebrow: "अलर्ट",
     title: "फंसने के बाद नहीं, निकलने से पहले जानें।",
