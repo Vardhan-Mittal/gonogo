@@ -6,7 +6,7 @@
 
 Built for *Environmental Hacks* (Bharat Builds Tour, WeMakeDevs × AWS), Heat & Water track.
 
-**Live demo:** https://gonogo-tau.vercel.app (backend on AWS Lambda in ap-southeast-2) · **Telegram bot:** [@Vami25bot](https://t.me/Vami25bot)
+**Live demo (on AWS):** https://dq1ucov7xi7l8.cloudfront.net (S3 + CloudFront; mirror: https://gonogo-tau.vercel.app) · **Telegram bot:** [@Vami25bot](https://t.me/Vami25bot)
 
 ![Replaying 28 June 2024: 13 of 19 spots already 'Do not enter' at 03:00, an hour before the heaviest rain](docs/screenshots/replay-28-june-2024.jpg)
 
@@ -40,6 +40,7 @@ Delhi has **410 waterlogging points** (traffic police, 2025). Today's warnings a
 | Amazon EventBridge Scheduler | Runs the risk engine every 15 minutes |
 | Amazon DynamoDB | Live status, subscribers, photo reports |
 | Amazon S3 | Citizen photos (private, 30-day expiry) |
+| Amazon S3 + CloudFront | The website itself: private bucket, HTTPS, global CDN |
 | Amazon CloudWatch | GoNoGo dashboard, custom metrics (spots by level, alerts sent, photo reports), alarms if the engine stops running or Lambdas error |
 | Amazon Bedrock (Amazon Nova Pro) | Water-depth estimate from photos (a Claude path via the Anthropic SDK is built in for accounts with Anthropic models enabled) |
 | AWS SAM | Infrastructure as code ([`backend/template.yaml`](backend/template.yaml)) |
@@ -83,6 +84,7 @@ cd backend
 sam build
 sam deploy --stack-name gonogo --region ap-southeast-2 --resolve-s3 --capabilities CAPABILITY_IAM
 python scripts/connect_telegram.py     # asks for the bot token, redeploys with it, registers the webhook
+cd ../frontend && npm run build && python ../backend/scripts/deploy_web.py   # website to S3 + CloudFront
 ```
 
 Then set `VITE_API_URL` to the stack's `ApiUrl` output where the frontend is hosted and rebuild. Without it, the site runs on bundled replay data (`backend/export_static.py`).
